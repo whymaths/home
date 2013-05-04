@@ -1,0 +1,12 @@
+service xinetd
+{
+        disable         = no
+        flags           = REUSE
+        socket_type     = stream
+        port            = 55655
+        wait            = no
+        user            = root
+        only_from       = 10.0.0.0/8 192.168.0.0/16
+        server          = /opt/work/worker/xinetd.pl
+        log_on_failure  += USERID
+}
