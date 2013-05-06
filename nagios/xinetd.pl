@@ -445,11 +445,11 @@ sub check_regist_ip {
             }
 
             if ($count < 200) {
-                print "error, $ip_forwarded Regist too much($count)\n";
+                print "error, $ip Regist too much($count)\n";
                 exit $ERRORS{'WARNING'};
             }
             else {
-                print "error, $ip_forwarded Regist too much($count)\n";
+                print "error, $ip Regist too much($count)\n";
                 exit $ERRORS{'CRITICAL'};
             }
         }
