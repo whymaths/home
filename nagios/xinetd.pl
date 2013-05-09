@@ -164,21 +164,25 @@ sub usage {
     exit $ERRORS{'UNKNOWN'};
 }
 
-sub is_ip {
-    my $host1 = shift;
-    return 0 unless defined $host1;
-    if ($host1 =~ m/^[\d\.]+$/ && $host1 !~ /\.$/) {
-        if ($host1 =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
+
+sub is_ip_or_hostname {
+
+    my $host = shift;
+    return 0 unless defined $host;
+    if ($host =~ m/^[\d\.]+$/ && $host !~ /\.$/) {
+        if ($host =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
             return 1;
         } else {
             return 0;
         }
-    } elsif ($host1 =~ m/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)*\.?$/) {
+    } elsif ($host =~
+            m/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+$/) {
         return 1;
     } else {
         return 0;
     }
 }
+
 
 
 sub check_float {
@@ -423,8 +427,8 @@ sub check_regist_ip {
     my ($count, $ip, $unused, $ip_forwarded_with_quotes) = split (/\s+/, $ret);
     my $ip_forwarded = substr $ip_forwarded_with_quotes, 1, length($ip_forwarded_with_quotes) - 2;
 
-    if (defined $count && $count > 99 && is_ip($ip)) {
-        if (is_ip($ip_forwarded)) {
+    if (defined $count && $count > 99 && is_ip_or_hostname($ip)) {
+        if (is_ip_or_hostname($ip_forwarded)) {
             if (exists $ignore_ips{$ip_forwarded}) {
                 print "ok, \n";
                 exit $ERRORS{'OK'};
