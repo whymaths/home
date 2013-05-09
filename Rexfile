@@ -133,5 +133,6 @@ task "nginx_topip", group => "frontend_nginx", sub {
     my $server = connection->server;
 
     print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 4";
+
     print "\n};\n";
 }
