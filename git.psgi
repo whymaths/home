@@ -1,8 +1,11 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 #-----------------------------
 #
 # whymaths@gmail.com
 #
+# git config http.postBuffer 524288000
+# plackup -s Starman -p 5000 /opt/git.psgi -error-log=/opt/git.log --pid=/opt/git.pid -D
+# cat /opt/repos/authz
 #-----------------------------
 
 use strict;
@@ -10,11 +13,7 @@ use warnings;
 
 use utf8;
 use diagnostics;
-#use Modern::Perl;
 use Carp qw(croak carp confess);
-#use 5.010000;
-#use autodie;
-
 
 use Plack::Builder;
 use Plack::App::GitSmartHttp;
@@ -24,29 +23,24 @@ use Plack::Middleware::Auth::Basic;
 my $app = Plack::App::URLMap->new;
  
 # reponame => groupnames
-my %repos = (
-    "test"          => ['test', 'admin2'],
-    "test2"          => ['admin2'],
-);
+my %repos;
 
 # groupname => group members
-my %groups = (
-    'test'          => ['test', 'admin2'],
-    'admin2'        => ['admin2'],
-);
+my %groups;
 
 # username => password
-my %users = (
-    'test'          => 'test', 
-    'test2'         => 'test2', 
-    'admin2'        => 'admin2', 
-    'admin'         => 'admin', 
-);
+my %users;
+
+
+my $repo_path = "/opt/repos";
+my $authz_file = "$repo_path/authz";
+
+load_authz($authz_file);
 
 while (my($reponame, $groupnames) = each %repos) {
-    my $git_path = "$reponame.git";
+    my $git_path = "$reponame";
     my $git_app = Plack::App::GitSmartHttp->new(
-        root => "/opt/git/$git_path",
+        root => "$repo_path/$git_path",
         upload_pack => 1,   # clone
         received_pack => 1, # push
     );
@@ -80,27 +74,45 @@ while (my($reponame, $groupnames) = each %repos) {
 $app;
 
 
-__END__
+sub load_authz {
+    my $authz_file = shift @_;
 
-use File::Spec;
-use File::Basename;
-use lib File::Spec->catdir( dirname(__FILE__), '..', 'extlib', 'lib', 'perl5' );
-use lib File::Spec->catdir( dirname(__FILE__), '..', 'lib' );
-use Plack::Builder;
-use Plack::App::GitSmartHttp;
+    my $authz_fd;
+    eval {
+        open $authz_fd, "<$authz_file" or die "open $authz_file: $!\n";
+        my $section;
+        while (my $line = <$authz_fd>) {
+            chomp $line;
+            $line =~ s/\s*//gxms;
+            next if substr $line, 0, 1 eq '#';
+            if ($line =~ m/^\[(\S+)\]$/xms) {
+                $section = $1;
+                next;
+            }
+            elsif($line =~ m/^(\S+)=(\S+)$/xms) {
+                my $section_key = $1;
+                my $section_value = $2;
 
-builder {
-    enable "Plack::Middleware::AccessLog", format        => "combined";
-    enable "Auth::Basic",                  authenticator => \&authen_cb;
-    Plack::App::GitSmartHttp->new(
-        root          => 'repos',
-        git_path      => '/usr/bin/git',
-        upload_pack   => 1,
-        received_pack => 1
-    )->to_app;
-};
-
-sub authen_cb {
-    my ( $username, $password ) = @_;
-    return $username eq 'admin' && $password eq 's3cr3t';
+                if ($section eq "users") {
+                    $users{$section_key} = $section_value;
+                }
+                elsif($section eq "repos") {
+                    my (@groups) = split /,/, $section_value;
+                    $repos{$section_key} = \@groups;
+                }
+                elsif($section eq "groups") {
+                    my @members = split /,/, $section_value;
+                    $groups{$section_key} = \@members;
+                }
+                else {
+                    next;
+                }
+            }
+            else {
+                next;
+            }
+        }
+        close $authz_fd;
+    };
+    croak $@ if $@;
 }
