@@ -834,7 +834,7 @@ sub parse_config_file {
     }
 
     ## Move the local vars into place, also record that we found them here
-    for my $k (keys %localopt) {
+    while (my($k, $v) = each %localopt) {
         ## Note it came from the config file so we rewrite it there
         $opt{configfile}{$k} = 1;
         ## If an array, we also want to mark individual items
@@ -843,7 +843,7 @@ sub parse_config_file {
                 $opt{configfile}{"$k.$ik"} = 1;
             }
         }
-        $opt{$k} = $localopt{$k};
+        $opt{$k} = $v;
     }
 
     if ($arg{debug}) {
@@ -2381,9 +2381,9 @@ sub lines_of_interest {
 
     ## Flatten the items for ease of sorting
     my @sorted;
-    for my $f (keys %find) {
-        for my $l (keys %{$find{$f}}) {
-            push @sorted => $find{$f}{$l};
+    while (my($f, $f_v) = each %find) {
+        while (my($l, $l_v) = each %$f_v) {
+            push @sorted, $l_v;
         }
     }
 

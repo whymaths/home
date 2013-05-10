@@ -421,42 +421,48 @@ sub check_dc_jobkeeper {
 }
 
 sub check_regist_ip {
-    my $ret = `tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v " 403 " | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 1`;
+    my $ret = qx/tail -n 200000 \/opt\/nginx\/logs\/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v " 403 " | awk '{print \$1}' | sort | uniq -c | sort -n | tail -n 1/;
 
     $ret =~ s/^\s+//xms;
-    my ($count, $ip, $unused, $ip_forwarded_with_quotes) = split (/\s+/, $ret);
-    my $ip_forwarded = substr $ip_forwarded_with_quotes, 1, length($ip_forwarded_with_quotes) - 2;
+    my ($count, $ip) = split (/\s+/, $ret);
+    #my $ip_forwarded = substr $ip_forwarded_with_quotes, 1, length($ip_forwarded_with_quotes) - 2;
 
-    if (defined $count && $count > 99 && is_ip_or_hostname($ip)) {
-        if (is_ip_or_hostname($ip_forwarded)) {
-            if (exists $ignore_ips{$ip_forwarded}) {
-                print "ok, \n";
-                exit $ERRORS{'OK'};
-            }
-            if ($count < 200) {
-                print "error, $ip_forwarded Regist too much($count)\n";
-                exit $ERRORS{'WARNING'};
-            }
-            else {
-                print "error, $ip_forwarded Regist too much($count)\n";
-                exit $ERRORS{'CRITICAL'};
-            }
-        }
-        else {
+    if (defined $count && $count > 9 && is_ip_or_hostname($ip)) {
+        if (is_ip_or_hostname($ip)) {
             if (exists $ignore_ips{$ip}) {
                 print "ok, \n";
                 exit $ERRORS{'OK'};
             }
-
-            if ($count < 200) {
-                print "error, $ip Regist too much($count)\n";
-                exit $ERRORS{'WARNING'};
+            elsif ($ip =~ m/^(10\.|192\.168\.)/xms) {
+                print "ok, \n";
+                exit $ERRORS{'OK'};
             }
             else {
-                print "error, $ip Regist too much($count)\n";
-                exit $ERRORS{'CRITICAL'};
+                if ($count < 20) {
+                    print "warning, $ip Regist too much($count)\n";
+                    exit $ERRORS{'WARNING'};
+                }
+                else {
+                    print "error, $ip Regist too much($count)\n";
+                    exit $ERRORS{'CRITICAL'};
+                }
             }
         }
+#        else {
+#            if (exists $ignore_ips{$ip}) {
+#                print "ok, \n";
+#                exit $ERRORS{'OK'};
+#            }
+#
+#            if ($count < 200) {
+#                print "error, $ip Regist too much($count)\n";
+#                exit $ERRORS{'WARNING'};
+#            }
+#            else {
+#                print "error, $ip Regist too much($count)\n";
+#                exit $ERRORS{'CRITICAL'};
+#            }
+#        }
         #exit $ERRORS{'CRITICAL'};
     }
     else {
