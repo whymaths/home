@@ -4,27 +4,27 @@ public_key "/opt/work/worker/.ssh/id_rsa.pub";
 
 timeout 2;
 
-parallelism 8;
+parallelism 20;
 
 logging to_file => "/tmp/rex.log";
 
-group "bx" => "10.16.11.[21..40]", "10.11.149.[24..35]", "10.11.149.37", "10.11.149.[39..48]", "10.11.152.107", "10.11.152.113", "10.11.152.216", "10.11.152.224", "10.11.152.[33..62]", "10.11.152.[65..87]", "10.11.157.[27..28]", "192.168.12.[173..177]", "192.168.12.[196..197]", "192.168.12.73", "10.10.68.22", "10.10.68.50", "10.10.72.181";
+group "pp" => "10.16.11.[21..40]", "10.11.149.[24..35]", "10.11.149.37", "10.11.149.[39..48]", "10.11.152.107", "10.11.152.113", "10.11.152.216", "10.11.152.224", "10.11.152.[33..62]", "10.11.152.[65..87]", "10.11.157.[27..28]", "192.168.12.[173..177]", "192.168.12.[196..197]", "192.168.12.73", "10.10.68.22", "10.10.68.50", "10.10.72.181";
 
-group "pp" => "10.11.149.24";
+group "bx" => "10.16.11.[21..40]";
 
 
 desc "Get Disk Free";
-task "disk_free", group => "bx", sub {
+task "disk_free", group => "pp", sub {
    my $output = run "df -h";
    say $output;
 };
 
 desc "Install Apache2";
-task "install_apache2", group => "bx", sub {
+task "install_apache2", group => "pp", sub {
     install "httpd";
 };
 
-task "ps", group => "bx", sub {
+task "ps", group => "pp", sub {
     my $server = connection->server;
     for my $process (ps()) {
         if ($process->{"command"} =~ m/puppet/xms) {
@@ -34,7 +34,7 @@ task "ps", group => "bx", sub {
 };
 
 
-task "restart_puppet", group => "bx", sub {
+task "restart_puppet", group => "pp", sub {
     run "/etc/init.d/puppet restart";
 };
 
@@ -141,4 +141,25 @@ task "nginx_topip", group => "frontend_nginx", sub {
 
     print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 4";
     print "\n};\n";
-}
+};
+
+
+#task "upload", group => "bx", sub {
+#    upload "git-1.7.9.6-1.el5.rf.x86_64.rpm", "/opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";
+#};
+
+task "install_git", group => "bx", sub {
+    my $server = connection->server;
+    upload "git-1.7.9.6-1.el5.rf.x86_64.rpm", "/opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";
+    upload "perl-Git-1.7.9.6-1.el5.rf.x86_64.rpm", "/opt/work/perl-Git-1.7.9.6-1.el5.rf.x86_64.rpm";
+    print "$server\t=>\n", split /\r/, run "rpm -ivh /opt/work/perl-Git-1.7.9.6-1.el5.rf.x86_64.rpm /opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";
+    print "\n};\n";
+};
+
+
+
+task "git_clone", group => "bx", sub {
+    my $server = connection->server;
+    print "$server\t=>\n", split /\r/, run "rm -rf /opt/work/boost.git; git clone http://test:test\@10.10.85.29:5000/boost.git /opt/work/boost.git";
+    print "\n};\n";
+};
