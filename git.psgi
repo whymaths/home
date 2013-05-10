@@ -7,26 +7,54 @@ use Plack::Middleware::Auth::Basic;
 
 my $app = Plack::App::URLMap->new;
  
-my %user = (
-    'test'   => 'test', 
+# reponame => groupnames
+my %repos = (
+    "test"          => ['test', 'admin2'],
+    "test2"          => ['admin2'],
 );
 
-while (my($user, $password) = each %user) {
-    my $user_path = "$user.git";
+# groupname => group members
+my %groups = (
+    'test'          => ['test', 'admin2'],
+    'admin2'        => ['admin2'],
+);
+
+# username => password
+my %users = (
+    'test'          => 'test', 
+    'test2'         => 'test2', 
+    'admin2'        => 'admin2', 
+);
+
+while (my($reponame, $groupnames) = each %repos) {
+    my $git_path = "$reponame.git";
     my $git_app = Plack::App::GitSmartHttp->new(
-        root => "/opt/git/$user_path",
+        root => "/opt/git/$git_path",
         upload_pack => 1,   # clone
-        received_pack => 1, # ush
+        received_pack => 1, # push
     );
 
     $git_app = Plack::Middleware::Auth::Basic->wrap(
         $git_app, authenticator => sub {
             my ($auth_user, $auth_password) = @_;
-            return 1 if $auth_user eq $user && $auth_password eq $password;
+
+            if (exists $users{$auth_user}) {
+                return 0 if $auth_password ne $users{$auth_user};
+                
+                for my $groupname (@$groupnames) {
+                    my $group_members = $groups{$groupname};
+                    for my $group_member (@$group_members) {
+                        if ($auth_user eq $group_member) {
+                            return 1;
+                        }
+                    }
+                }
+            }
+            return 0;
         }
     );
 
-    $app->mount("/$user_path" => $git_app);
+    $app->mount("/$git_path" => $git_app);
 }
 
 
