@@ -1,5 +1,21 @@
 #!/usr/bin/perl
+#-----------------------------
+#
+# whymaths@gmail.com
+#
+#-----------------------------
+
 use strict;
+use warnings;
+
+use utf8;
+use diagnostics;
+#use Modern::Perl;
+use Carp qw(croak carp confess);
+#use 5.010000;
+#use autodie;
+
+
 use Plack::Builder;
 use Plack::App::GitSmartHttp;
 use Plack::App::URLMap;
@@ -24,6 +40,7 @@ my %users = (
     'test'          => 'test', 
     'test2'         => 'test2', 
     'admin2'        => 'admin2', 
+    'admin'         => 'admin', 
 );
 
 while (my($reponame, $groupnames) = each %repos) {
@@ -40,7 +57,9 @@ while (my($reponame, $groupnames) = each %repos) {
 
             if (exists $users{$auth_user}) {
                 return 0 if $auth_password ne $users{$auth_user};
-                
+                # administrator
+                return 1 if $auth_user eq 'admin';
+
                 for my $groupname (@$groupnames) {
                     my $group_members = $groups{$groupname};
                     for my $group_member (@$group_members) {
