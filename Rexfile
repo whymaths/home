@@ -125,13 +125,20 @@ task "tail_frontend_nginx_access_log", group => "frontend_nginx", sub {
 
 task "regist_nginx", group => "frontend_nginx", sub {
     my $server = connection->server;
-    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v \" 403 \" | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 2";
+    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v \" 403 \" | awk '{print \$1,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 2";
     print "\n};\n";
 };
+
+task "regist_nginx_1", group => "frontend_nginx", sub {
+    my $server = connection->server;
+    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v \" 403 \" | awk '{print \$1}' | sort | uniq -c | sort -n | tail -n 4";
+    print "\n};\n";
+};
+
 
 task "nginx_topip", group => "frontend_nginx", sub {
     my $server = connection->server;
 
-    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 5";
+    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 4";
     print "\n};\n";
 }
