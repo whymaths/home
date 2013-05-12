@@ -9,7 +9,7 @@ use strict;
 use warnings;
 use utf8;
 use diagnostics;
-#use Modern::Perl;
+use Modern::Perl;
 use Carp qw(croak carp confess);
 #use 5.010000;
 #use autodie;
@@ -34,7 +34,7 @@ my $content = get($url);
 
 foreach my $sc (split (/\n/, $content)) {
     if($sc =~ m/td align="center"><ul class="ul1"><li>(.*?)<.*/) {
-        my $msg = decode("gb2312", $1);
+        my $msg = $1; # = decode("gb2312", $1);
         $msg = encode("utf8", $msg);
         printf "%-20s %s\n", $ip, $msg;
     }
