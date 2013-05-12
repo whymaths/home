@@ -1,20 +1,11 @@
 #!/usr/bin/env perl
-#-----------------------------
-#
-# fengxiahou@sohu-inc.com
-#
-#-----------------------------
 
 use strict;
 use warnings;
 use utf8;
 use diagnostics;
-use Modern::Perl;
 use Carp qw(croak carp confess);
-#use 5.010000;
-#use autodie;
 
-#use Smart::Comments;
 
 use LWP::Simple;
 
@@ -32,11 +23,11 @@ my $url = "http://ip138.com/ips138.asp?ip=$ip&action=2";
 
 my $content = get($url);
 
-foreach my $sc (split (/\n/, $content)) {
+for my $sc (split (/\n/, $content)) {
     if($sc =~ m/td align="center"><ul class="ul1"><li>(.*?)<.*/) {
         # accidentally trying to decode something already decoded
-        my $msg = $1; # = decode("gb2312", $1);
-        $msg = encode("utf8", $msg);
+        #my $msg = decode("gb2312", $1);
+        my $msg = encode("utf8", $1);
         printf "%-20s %s\n", $ip, $msg;
     }
 }

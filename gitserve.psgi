@@ -1,16 +1,6 @@
 #!/usr/bin/env perl
-#-----------------------------
-#
-# whymaths@gmail.com
-#
-# git config http.postBuffer 524288000
-# plackup -s Starman -p 5000 /opt/git.psgi -error-log=/opt/git.log --pid=/opt/git.pid -D
-# cat /opt/repos/authz
-#-----------------------------
-
 use strict;
 use warnings;
-
 use utf8;
 use diagnostics;
 use Carp qw(croak carp confess);
@@ -22,15 +12,7 @@ use Plack::Middleware::Auth::Basic;
 
 my $app = Plack::App::URLMap->new;
  
-# reponame => groupnames
-my %repos;
-
-# groupname => group members
-my %groups;
-
-# username => password
-my %users;
-
+my (%repos, %groups, %users);
 
 my $repo_path = "/opt/repos";
 my $authz_file = "$repo_path/authz";
