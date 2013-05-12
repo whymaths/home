@@ -432,3 +432,39 @@ sub y_n {
         print "Please answer 'y' or 'n'.\n";
     }
 }
+
+
+
+sub is_singleton($) {
+    my $lock_file = shift;
+
+    return 1 unless (-e $lock_file);
+
+    eval {
+        open my $lock, "<$lock_file" or die "open $lock_file error: $!";
+    };
+    print $@ if $@;
+    return 1 if $@;
+
+    my $pid;
+
+    while (<$lock>) {
+        chomp;
+        $pid = $_;
+    }
+
+    return 1 unless defined $pid;
+    return 1 if ($pid eq "");
+
+    my $cnt =  kill 0, $pid;
+
+    return 0 if $cnt == 1;
+    return 1;
+}
+
+
+
+
+# 5.10+
+my $home = $ENV{'HOME'} // $ENV{'LOGDIR'} // (getpwuid($<))[7] // die "You're homeless!\n";
+
