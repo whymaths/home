@@ -143,6 +143,15 @@ task "nginx_topip", group => "frontend_nginx", sub {
     print "\n};\n";
 };
 
+task "nginx_topip_1", group => "frontend_nginx", sub {
+    my $server = connection->server;
+
+    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF}' | sort | uniq -c | sort -n | tail -n 4";
+    print "\n};\n";
+};
+
+
+
 
 #task "upload", group => "bx", sub {
 #    upload "git-1.7.9.6-1.el5.rf.x86_64.rpm", "/opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";

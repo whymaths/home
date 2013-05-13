@@ -26,8 +26,8 @@ my $content = get($url);
 for my $sc (split (/\n/, $content)) {
     if($sc =~ m/td align="center"><ul class="ul1"><li>(.*?)<.*/) {
         # accidentally trying to decode something already decoded
-        #my $msg = decode("gb2312", $1);
-        my $msg = encode("utf8", $1);
+        my $msg = decode("gb2312", $1);
+        $msg = encode("utf8", $msg);
         printf "%-20s %s\n", $ip, $msg;
     }
 }
