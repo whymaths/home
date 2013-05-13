@@ -6,9 +6,9 @@ use Storable;
 #use List::MoreUtils qw(any);
 
 my @ignore_ips = qw(
-    '61.135.151.250'
-    '110.96.178.139'
-    '123.126.48.28'
+    61.135.151.250
+    110.96.178.139
+    123.126.48.28
 );
 
 my %ignore_ips = map {
@@ -63,9 +63,15 @@ if (chomp (my $line = <STDIN>)) {
             print "ok, \n";
             exit $ERRORS{'OK'};
         }
-
-        print "undef\n";
-        exit $ERRORS{'OK'};
+        elsif ($service eq 'topip' && $pattern eq 'nginx') {
+            check_topip();
+            print "ok, \n";
+            exit $ERRORS{'OK'};
+        }
+        else {
+            print "undef\n";
+            exit $ERRORS{'OK'};
+        }
     }
     elsif ($group eq 'client') {
         if ($service eq 'pic' && $pattern eq 'nginx') {
@@ -421,7 +427,7 @@ sub check_dc_jobkeeper {
 }
 
 sub check_regist_ip {
-    my $ret = qx/tail -n 200000 \/opt\/nginx\/logs\/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v " 403 " | awk '{print \$1}' | sort | uniq -c | sort -n | tail -n 1/;
+    my $ret = qx#tail -n 200000 \/opt\/nginx\/logs\/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v " 403 " | awk '{print \$1}' | sort | uniq -c | sort -n | tail -n 1#;
 
     $ret =~ s/^\s+//xms;
     my ($count, $ip) = split (/\s+/, $ret);
@@ -448,22 +454,78 @@ sub check_regist_ip {
                 }
             }
         }
-#        else {
-#            if (exists $ignore_ips{$ip}) {
-#                print "ok, \n";
-#                exit $ERRORS{'OK'};
-#            }
-#
-#            if ($count < 200) {
-#                print "error, $ip Regist too much($count)\n";
-#                exit $ERRORS{'WARNING'};
-#            }
-#            else {
-#                print "error, $ip Regist too much($count)\n";
-#                exit $ERRORS{'CRITICAL'};
-#            }
-#        }
-        #exit $ERRORS{'CRITICAL'};
+    }
+    else {
+        print "ok, \n";
+        exit $ERRORS{'OK'};
+    }
+
+    print "undef\n";
+    exit $ERRORS{'OK'};
+}
+
+
+sub check_topip {
+    #use Data::Dumper qw(Dumper);
+    #print Dumper %ignore_ips;
+
+    my $topip_db = "/opt/work/topip.db";
+
+    use Storable qw(store retrieve);
+
+    my $topip_ref;
+    eval {
+        $topip_ref = retrieve($topip_db);
+    };
+
+    $topip_ref = {} if $@;
+
+    my $ret = qx#tail -n 200000 /opt/nginx/logs/access.log | grep -v " 403 " | awk '{print \$1, \$(NF-1)}' | sort | uniq -c | sort -n | tail -n 5#;
+    my @lines = split (/\n/, $ret);
+
+    my ($suspicious_ip, $suspicious_ip_count) = qw(0 0);
+    for my $line (@lines) {
+        $line =~ s/^\s+//xms;
+        my ($count, $ip, $ip_forwarded_with_quotes) = split (/\s+/, $line);
+
+        next if exists $ignore_ips{$ip};
+
+        my $ip_forwarded = substr $ip_forwarded_with_quotes, 1, length($ip_forwarded_with_quotes) - 2;
+        if ($ip =~ m/^10\.|192\.168\./xms) {
+            $ip = $ip_forwarded if is_ip_or_hostname($ip_forwarded);
+        }
+        unless (exists $topip_ref->{$ip}) {
+            $suspicious_ip = $ip;
+            $suspicious_ip_count = $count;
+        }
+        # comment two lines below after a few days. try to collect normal topips.
+        $topip_ref->{$ip} = $count;
+        store $topip_ref, $topip_db;
+    }
+
+    if (defined $suspicious_ip_count && $suspicious_ip_count > 99) {
+        if (is_ip_or_hostname($suspicious_ip)) {
+            if (exists $ignore_ips{$suspicious_ip}) {
+                print "ok, \n";
+                exit $ERRORS{'OK'};
+            }
+            elsif ($suspicious_ip =~ m/^(10\.|192\.168\.)/xms) {
+                print "ok, \n";
+                exit $ERRORS{'OK'};
+            }
+            else {
+                if ($suspicious_ip_count < 200) {
+                    print "warning, $suspicious_ip($suspicious_ip_count)\n";
+                    #exit $ERRORS{'WARNING'};
+                    exit $ERRORS{'OK'};
+                }
+                else {
+                    print "error, $suspicious_ip($suspicious_ip_count)\n";
+                    #exit $ERRORS{'CRITICAL'};
+                    exit $ERRORS{'OK'};
+                }
+            }
+        }
     }
     else {
         print "ok, \n";
