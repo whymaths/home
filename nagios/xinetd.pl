@@ -427,13 +427,17 @@ sub check_dc_jobkeeper {
 }
 
 sub check_regist_ip {
-    my $ret = qx#tail -n 200000 \/opt\/nginx\/logs\/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v " 403 " | awk '{print \$1}' | sort | uniq -c | sort -n | tail -n 1#;
+    my $ret = qx#tail -n 200000 \/opt\/nginx\/logs\/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v " 403 " | awk '{print \$1,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 1#;
 
     $ret =~ s/^\s+//xms;
-    my ($count, $ip) = split (/\s+/, $ret);
-    #my $ip_forwarded = substr $ip_forwarded_with_quotes, 1, length($ip_forwarded_with_quotes) - 2;
+    my ($count, $ip, $ip_forwarded_with_quotes) = split (/\s+/, $ret);
+    my $ip_forwarded = substr $ip_forwarded_with_quotes, 1, length($ip_forwarded_with_quotes) - 2;
 
-    if (defined $count && $count > 9 && is_ip_or_hostname($ip)) {
+    if ($ip =~ m/^10\.|192\.168\./xms) {
+        $ip = $ip_forwarded if is_ip_or_hostname($ip_forwarded);
+    }
+
+    if (defined $count && $count > 9) {
         if (is_ip_or_hostname($ip)) {
             if (exists $ignore_ips{$ip}) {
                 print "ok, \n";
@@ -468,6 +472,7 @@ sub check_regist_ip {
 sub check_topip {
     #use Data::Dumper qw(Dumper);
     #print Dumper %ignore_ips;
+    use List::Util qw(max);
 
     my $topip_db = "/opt/work/topip.db";
 
@@ -479,8 +484,16 @@ sub check_topip {
     };
 
     $topip_ref = {} if $@;
+    $topip_ref->{'create'} ||= time;
 
-    my $ret = qx#tail -n 200000 /opt/nginx/logs/access.log | grep -v " 403 " | awk '{print \$1, \$(NF-1)}' | sort | uniq -c | sort -n | tail -n 5#;
+    my $time_to_send_notification = 0;
+    my $time = time;
+    $time_to_send_notification = 1
+        #if ($time - $topip_ref->{'create'}) > 600;
+        if ($time - $topip_ref->{'create'}) > 86400 * 1;
+
+    my $ret =
+        qx#tail -n 200000 /opt/nginx/logs/access.log | grep -v " 403 " | awk '{print \$1, \$(NF-1)}' | sort | uniq -c | sort -n | tail -n 5#;
     my @lines = split (/\n/, $ret);
 
     my ($suspicious_ip, $suspicious_ip_count) = qw(0 0);
@@ -494,16 +507,24 @@ sub check_topip {
         if ($ip =~ m/^10\.|192\.168\./xms) {
             $ip = $ip_forwarded if is_ip_or_hostname($ip_forwarded);
         }
-        unless (exists $topip_ref->{$ip}) {
+        if (!exists $topip_ref->{$ip} || $topip_ref->{$ip} lt $count) {
             $suspicious_ip = $ip;
             $suspicious_ip_count = $count;
         }
         # comment two lines below after a few days. try to collect normal topips.
-        $topip_ref->{$ip} = $count;
-        store $topip_ref, $topip_db;
+        if (exists $topip_ref->{$ip}) {
+            $topip_ref->{$ip} = max $count, $topip_ref->{$ip};
+        }
+        else {
+            $topip_ref->{$ip} = $count;
+        }
     }
 
-    if (defined $suspicious_ip_count && $suspicious_ip_count > 99) {
+    store $topip_ref, $topip_db unless $time_to_send_notification;
+
+    if (defined $suspicious_ip_count
+            && $suspicious_ip_count > 99
+            && $time_to_send_notification) {
         if (is_ip_or_hostname($suspicious_ip)) {
             if (exists $ignore_ips{$suspicious_ip}) {
                 print "ok, \n";
@@ -516,13 +537,11 @@ sub check_topip {
             else {
                 if ($suspicious_ip_count < 200) {
                     print "warning, $suspicious_ip($suspicious_ip_count)\n";
-                    #exit $ERRORS{'WARNING'};
-                    exit $ERRORS{'OK'};
+                    exit $ERRORS{'WARNING'};
                 }
                 else {
                     print "error, $suspicious_ip($suspicious_ip_count)\n";
-                    #exit $ERRORS{'CRITICAL'};
-                    exit $ERRORS{'OK'};
+                    exit $ERRORS{'CRITICAL'};
                 }
             }
         }
