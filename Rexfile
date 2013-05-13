@@ -150,6 +150,12 @@ task "nginx_topip_1", group => "frontend_nginx", sub {
     print "\n};\n";
 };
 
+task "clean_nginx_topip", group => "frontend_nginx", sub {
+    my $server = connection->server;
+
+    print "$server\t=>\trm -f /opt/work/topip.db\n", split /\r/, run "rm -f /opt/work/topip.db";
+};
+
 
 
 
