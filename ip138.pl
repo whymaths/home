@@ -34,15 +34,15 @@ for my $sc (split (/\n/, $content)) {
 
 
 sub is_ip_or_hostname {
-    my $host = shift;
-    return 0 unless defined $host;
-    if ($host =~ m/^[\d\.]+$/ && $host !~ /\.$/) {
-        if ($host =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
+    my $str = shift;
+    return 0 unless defined $str;
+    if ($str =~ m/^[\d\.]+$/ && $str !~ /\.$/) {
+        if ($str =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
             return 1;
         } else {
             return 0;
         }
-    } elsif ($host =~
+    } elsif ($str =~
             m/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+$/) {
         return 1;
     } else {
