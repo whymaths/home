@@ -1,0 +1,2 @@
+# rm -f /dev/null
+# mknod /dev/null c 1 3
