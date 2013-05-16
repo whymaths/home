@@ -1,4 +1,6 @@
 #!/usr/bin/env perl
+# start_server --port=5000 --pid-file=/opt/gitserve.pid --status-file=/opt/gitserve.status -- plackup -s Starman -w 10 -E production -D -a /opt/gitserve.psgi
+
 use strict;
 use warnings;
 use utf8;
