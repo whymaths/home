@@ -468,3 +468,21 @@ sub is_singleton($) {
 # 5.10+
 my $home = $ENV{'HOME'} // $ENV{'LOGDIR'} // (getpwuid($<))[7] // die "You're homeless!\n";
 
+
+
+
+my @a = ( 1, 3, 6, 7, 9, 11, 15, 16, 18, 19, 21 );
+my @b = ( 1, 6, 7, 9, 15, 18, 19, 21 );
+
+my %c = map { $a[$_] => $_ } (0..$#a);
+my @d = map { $c{ $b[$_] } - $_ } (0..$#b);
+unshift @d, $#a + $#b + 10000;
+push @d, $#a + $#b + 10000;
+
+    # just need a number not equal to any existed element of @d. a non-integer, such as 0.5, is also OK.
+print map { $d[$_+2] - $d[$_ + 1] && $d[$_ + 1] - $d[$_] ? "\n" : "$b[$_]," } (0..$#b);
+
+# %c = ( 1 => 0, 3 => 1, 6 => 2, ..., 21 => 10 )
+# @d = ( 10017, 0, 1, 1, 1, 2, 3, 3, 3, 10017 )
+
+# output: "\n6,7,9,\n18,19,21,"
