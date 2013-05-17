@@ -1,0 +1,162 @@
+./rabbitmq-http -address="127.0.0.1:8080" -amqp="amqp://guest:guest@localhost:5672/"
+
+
+
+Exchange
+
+create new exchange:
+
+    $ curl -i -X POST http://127.0.0.1:8080/exchange -d \
+    '{"name": "e1", "type": "topic", "durable": true, "autodelete": false}'
+
+    HTTP/1.1 200 OK
+    Date: Thu, 21 Mar 2013 05:45:47 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    declare exchange ok
+
+delete exchange:
+
+    $ curl -i -X DELETE http://127.0.0.1:8080/exchange -d \
+    '{"name": "e1"}'
+
+    HTTP/1.1 200 OK
+    Date: Thu, 21 Mar 2013 05:46:21 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    delete exchange ok
+
+Message
+
+publish new message:
+
+    $ curl -i -X POST "http://127.0.0.1:8080/publish" -d \
+    '{"exchange": "e1", "key": "bb", "deliverymode": 1, "priority": 99, "body": "hahaha"}'
+
+    HTTP/1.1 200 OK
+    Date: Mon, 25 Mar 2013 11:56:22 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    publish message ok
+
+Queue
+
+create new queue:
+
+    $ curl -i -X POST http://127.0.0.1:8080/queue -d \
+    '{"name": "q1"}'
+
+    HTTP/1.1 200 OK
+    Date: Thu, 21 Mar 2013 05:47:11 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    declare queue ok
+
+delete queue:
+
+    $ curl -i -X DELETE http://127.0.0.1:8080/queue -d \
+    '{"name": "q1"}'
+
+    HTTP/1.1 200 OK
+    Date: Thu, 21 Mar 2013 05:48:05 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    delete queue ok
+
+bind keys to queue:
+
+    $ curl -i -X POST http://127.0.0.1:8080/queue/bind -d \
+    '{"queue": "q1", "exchange": "e1", "keys": ["aa", "bb", "cc"]}'
+
+    HTTP/1.1 200 OK
+    Date: Thu, 21 Mar 2013 05:48:43 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    bind queue ok
+
+unbind keys to queue:
+
+    $ curl -i -X DELETE http://127.0.0.1:8080/queue/bind -d \
+    '{"queue": "q1", "exchange": "e1", "keys": ["aa", "cc"]}'
+
+    HTTP/1.1 200 OK
+    Date: Thu, 21 Mar 2013 05:49:05 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    unbind queue ok
+
+consume queue:
+
+    $ curl -i -X GET "http://127.0.0.1:8080/queue?name=q1" # more queues: "/queue?name=q1&name&q2"
+
+    HTTP/1.1 200 OK
+    Date: Fri, 22 Mar 2013 04:11:59 GMT
+    Transfer-Encoding: chunked
+    Content-Type: text/plain; charset=utf-8
+
+    <DATA>\n
+    <DATA>\n
+    ...
+
+
+
+
+
+目前封装的接口大致分为一下几类：
+
+    Exchange
+        新建
+        删除
+    Queue
+        新建
+        删除
+        绑定/取消绑定
+        读取消息
+    Message
+        发布新消息
+
+上面的新建、删除、发送或者读取的行为对应 HTTP 请求中的几种方法，比如：POST、DELETE、GET等。
+
+整个 API 的返回值（HTTP状态码）有一下三类：
+
+    200，操作 OK，返回的 Body 体中有简单描述字符。
+    405，不支持的请求方式，比如接口尚未实现。
+    500，服务器端错误，Body 体中会有错误的描述。比如队列不存在、删除错误等。
+
+好了，还是来一点实际的例子吧。完全是 curl 操作：
+
+新建一个 Exchange：
+
+$ curl -i -X POST http://127.0.0.1:8080/exchange -d \
+'{"name": "e1", "type": "topic", "durable": true, "autodelete": false}'
+
+新建一个 Queue：
+
+$ curl -i -X POST http://127.0.0.1:8080/queue -d \
+'{"name": "q1"}'
+
+绑定 Queue 到 Exchange 上：
+
+$ curl -i -X POST http://127.0.0.1:8080/queue/bind -d \
+'{"queue": "q1", "exchange": "e1", "keys": ["aa", "bb", "cc"]}'
+
+发布消息到 Exchange，指定 Routing-key：
+
+$ curl -i -X POST http://127.0.0.1:8080/publish -d \
+'{"exchange": "e1", "key": "bb", "body": "hahaha"}'
+
+读取一下刚才发送的消息，即消费某个 Queue：
+
+$ curl -i "http://127.0.0.1:8080/queue?name=q1"
+        
+PS：消费的接口输出为 Chunked 模式，可以用类似文件的行读取方式，接口是 HTTP 长连接。
+同时这个接口也支持多个 Queue 一起消费，类似：“/queue?name=q1&name=q2” 即可。
+
+基本常用的接口已经暴露出来， 后续还会封装一些其他语言的 SDK，其实都是普通的 HTTP 的请求。
