@@ -6,7 +6,6 @@ use utf8;
 use diagnostics;
 use Carp qw(croak carp confess);
 
-
 use LWP::Simple;
 
 use Encode qw(decode encode);
@@ -26,8 +25,12 @@ my $content = get($url);
 for my $sc (split (/\n/, $content)) {
     if($sc =~ m/td align="center"><ul class="ul1"><li>(.*?)<.*/) {
         # accidentally trying to decode something already decoded
-        my $msg = decode("gb2312", $1);
-        $msg = encode("utf8", $msg);
+        my $msg = $1;
+        eval {
+            #$msg = decode("gb2312", $msg);
+            $msg = encode("utf8", $msg);
+        };
+        print $@ if $@;
         printf "%-20s %s\n", $ip, $msg;
     }
 }
