@@ -486,3 +486,16 @@ print map { $d[$_+2] - $d[$_ + 1] && $d[$_ + 1] - $d[$_] ? "\n" : "$b[$_]," } (0
 # @d = ( 10017, 0, 1, 1, 1, 2, 3, 3, 3, 10017 )
 
 # output: "\n6,7,9,\n18,19,21,"
+
+
+
+sub pack_ip {
+    my $ip = shift;
+    return unpack("N", pack("C4", split(/\./, $ip)));
+}
+
+sub unpack_ip {
+    my $packed = shift;
+
+    return join(".", ($pakcked >> 24, ($packed >> 16) & 255, ($packed >> 8) & 255, $packed & 255));
+}
