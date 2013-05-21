@@ -1,0 +1,13 @@
+设置Firefox默认使用google https搜索
+
+
+搜索框处：
+
+        在Firefox的个人设置文件夹下，找到"search.json"这个文件；
+        用文本工具打开它，搜索"http://www.google.com/search"，然后将这个网址替换为"https://www.google.com /search"。保存后，重启Firefox即可。
+
+
+地址栏处：
+
+        新建标签页，输入"about:config"；
+        用过滤器查找 keyword.URL，双击并将值改为"https://www.google.com/search?hl=en&q="，即可实时生效。
