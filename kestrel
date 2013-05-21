@@ -1,0 +1,65 @@
+Scarling » Kestrel
+
+27 Nov 2008
+
+Ever since we deployed scarling in production, its name has progressed from being a stale joke to an annoyance. It started out as a test of porting starling to scala, but as features have been added and it’s been hardened by the real world, it has needed its own identity. I wanted to stay with the bird theme, because I think it’s cute, so after spending several days mulling over possible new names, I’ve settled on “kestrel”.
+
+Poof! And so it is. What was scarling is now kestrel. I’ve updated the code and github page: http://github.com/robey/kestrel/
+
+Meanwhile, over the last couple of weeks, I’ve added three big features.
+Big Queues
+
+One of the working assumptions of kestrel is that queues are normally empty. A healthy system has more consumers than producers, so new work items are gobbled up as fast as they come in, and we can usually keep all queued items in memory, for the rare times there are any items queued at all.
+
+However, you may have an event — like a realigning US presidential election — which causes brief “high traffic” bursts that temporarily overwhelm consumers. It became clear at Twitter that we needed to have a graceful soft-landing for these bursts, to prevent kestrel from running out of memory or needing manual intervention.
+
+In kestrel’s git-head, now, when a queue passes a memory limit (128MB by default), that queue will be dropped into what I call “read-behind mode”. New items are added to the queue by writing them into the queue’s journal, but not kept around in memory. Instead, we just keep the first 128MB of the queue head in memory, and track a second file pointer to our journal. As items are read from the queue, this new file pointer replays the journal from behind, filling the queue back up until it either catches up with the write pointer or fills up 128MB again.
+
+In effect, we’re keeping a window of the head of the queue in memory, and using the journal as a disk store for the rest. It nicely caps memory consumption and the added disk I/O can be amortized out across consumers.
+
+You probably don’t want to let an out-of-control queue grow forever because it will fill up your disk, but this should make it cope well with short-term spikes and give you one less thing to worry about when the snake is trying to swallow the pig.
+Blocking fetches
+
+Something that’s bothered me about using the memcache protocol is that there’s no way for a consumer to do a blocking fetch from a queue. If an item is immediately available, kestrel will give it to you. If not, you’ll immediately get a “nothing” response. Since, like I just said above, you always want to have more consumers/workers than work items, these consumers swarm all over the cluster, asking for work and immediately being sent away empty-handed. Just to keep them from going crazy, we have ruby client code that looks something like this:
+
+while !(response = QUEUE.get(queue_name))
+  sleep 0.25
+end
+
+Good grief. If we’re going to let the workers take a nap on the job, we could at least make it happen while blocking on a queue fetch.
+
+So I did a little sneaky thing with queue names in the memcache “get” command by letting clients add options to the end, separated by slashes. Slashes aren’t allowed in filenames anyway so they were never valid in queue names. Then I made a timeout option, so a client can ask to block for work for some amount of time:
+
+while !(response = QUEUE.get("<b>#{queue_name}/t=250</b>")); end
+
+The “t=250” option means “if there’s nothing in the queue right now, I’m willing to wait up to 250 milliseconds for something to arrive”. After that timeout, if there’s still nothing, kestrel will answer with the usual empty-response. It’s important here to make sure that your memcache client is set to have a read-timeout larger than the timeout you send in the “get” request.
+
+This was the easiest thing to implement after I worked out how. Each queue just has a kernel-style wait-list of clients attached to it. If a client makes a timeout-style “get” request, and the queue is empty, we just put the client on the wait-list and the client’s actor does a receiveWithin(timeout) to wait for a message saying something new has arrived. When items are put on the queue, the first wait-list client is removed from the wait-list and notified.
+
+The ManyClients load test exercises this by having 100 (or 500) clients pile on to a queue with blocking fetches while a single producer slowly trickles out data. It seems to work like a charm.
+Reliable Fetch
+
+Writing something into a queue is pretty reliable. The client does a “set” operation, and if it worked, kestrel responds “STORED”. Naturally, it only sends that response after the item has been written into the queue’s journal file. The “STORED” response means kestrel has taken responsibility for the item.
+
+Fetching from a queue is not such a happy story. When kestrel sends an item to a client, it will never get an acknowledgement or confirmation, and has to blithely assume that the client got all the data okay and took responsibility for it. If a client loses its connection during the data transfer, or crashes right after receiving a work item, that item is gone forever.
+
+So I added an “open” option to “get” which opens a tentative fetch on a queue. If an item is available, kestrel will remove it from the queue and send it to the client as usual. But it will also set the item aside and prepare to “un-get” it if the client disconnects without confirming it. So a tentative fetch is started with:
+
+QUEUE.get("#{queue_name}/open")
+
+and confirmed with:
+
+QUEUE.get("#{queue_name}/close")
+
+which returns nothing. For efficiency, you can also confirm a previous fetch and get the next item in one operation (avoiding an extra round-trip):
+
+QUEUE.get("#{queue_name}/close/open")
+
+Each client connection may only have one outstanding tentative fetch, and if a connection is dropped, any tentatively-fetched item will be put back on the head of the queue and given to the next available consumer.
+
+I want to briefly make a distinction here between confirming that a client receives an enqueued item and confirming that some useful work was done on it. Kestrel can really only concern itself with the former. As a good queue server, it would like confirmation that a client has accepted responsibility for an item before that item is erased from the queue and journal. But it has no way of confirming that “something useful” was done with that item. You still need to write careful client code to ensure that an item isn’t lost after it’s received.
+
+Using reliable fetch means you are protected from losing items, at the expense of potentially receiving duplicates — that’s the trade-off. A client may successfully handle a fetched item but crash before confirming it to kestrel, and the item may then be given to another client. I think this is a good trade-off, though. If you know you may handle some items twice, you can design your system so that duplicate work is harmless — versus the case where you may lose items and don’t have any recourse.
+Summary
+
+With these three new features, you should be able to survive large bursts of traffic more easily (with big queues), allow incoming items to be processed immediately by the next available consumer (with blocking fetches), and deliver items reliably even to flaky consumers (with reliable fetch). They expanded the code size 50%, from 1000 lines to 1500, but I think they were worth it, because they solve several limitations inherited from starling.
