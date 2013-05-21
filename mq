@@ -176,3 +176,83 @@ PS：消费的接口输出为 Chunked 模式，可以用类似文件的行读取
 同时这个接口也支持多个 Queue 一起消费，类似：“/queue?name=q1&name=q2” 即可。
 
 基本常用的接口已经暴露出来， 后续还会封装一些其他语言的 SDK，其实都是普通的 HTTP 的请求。
+
+
+
+
+
+
+#!/usr/bin/env ruby
+# encoding: utf-8
+require “rubygems”
+require “bunny”
+ 
+while true
+  begin
+    conn = Bunny.new
+    conn.start
+    ch = conn.create_channel
+    x  = ch.direct(“buuny.exchange”, :durable => true)
+    q  = ch.queue(“bunny.queue”, :durable => true).bind(x, :routing_key => “test”)
+    q.subscribe(:block => true) do |delivery_info, metadata, payload|
+        puts “Received #{payload}”
+    end
+ 
+  rescue Exception => e
+    puts e.message
+  end
+end
+
+
+
+
+#!/usr/bin/env ruby
+# encoding: utf-8
+require “rubygems”
+require “bunny”
+ 
+conn = Bunny.new
+conn.start
+ch = conn.create_channel
+x  = ch.direct(“buuny.exchange”, :durable => true)
+data = rand.to_s
+x.publish(data, :routing_key => ‘test’, :persistent => true)
+
+
+
+
+
+
+#!/usr/bin/env ruby
+# encoding: utf-8
+require "bunny"
+  
+while true
+  begin
+    conn = Bunny.new(:host => "1.1.1.1", :port => 5672, :vhost => "/", :user => "guest", :pass => "***")
+    conn.start
+    ch = conn.create_channel
+    x  = ch.fanout("project_name")
+    q  = ch.queue("").bind(x)
+    q.subscribe(:block => true) do |delivery_info, metadata, payload|
+        puts "Received #{payload}"
+    end
+  
+  rescue Exception => e
+    puts e.message
+  end
+end
+
+
+#!/usr/bin/env ruby
+# encoding: utf-8
+require "bunny"
+  
+conn = Bunny.new(:host => "1.1.1.1", :port => 5672, :vhost => "/", :user => "guest", :pass => "***")
+conn.start
+ch = conn.create_channel
+x  = ch.fanout("project_name")
+1000.times do
+  data = rand.to_s
+  x.publish(data)
+end
