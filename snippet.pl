@@ -499,3 +499,9 @@ sub unpack_ip {
 
     return join(".", ($pakcked >> 24, ($packed >> 16) & 255, ($packed >> 8) & 255, $packed & 255));
 }
+
+
+
+# chinese
+$foo =~ s/[\x80-\xff]//g;
+
