@@ -1,0 +1,4 @@
+ln -s /usr/bin/python26 /usr/local/bin/python
+yum install python26-devel
+easy_install-2.6 pip
+pip-2.6
