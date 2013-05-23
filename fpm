@@ -1,0 +1,2 @@
+fpm -s dir -t deb -n myinitfiles -v 1.0 /etc/init.d/
+fpm -s dir -t rpm -n myinitfiles -v 1.0 /etc/init.d/

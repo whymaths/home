@@ -20,3 +20,27 @@ if [ -z "$EXTENSION" ]; then
 fi
 echo "EXTENSION=$EXTENSION"
 
+
+sed -n '1,2p' xxx.list
+sed '2,5d' datafile
+sed '/My/,/You/d' datafile
+sed '/My/,10d' datafile
+
+
+
+killproc -p ${pidfile} $prog
+retval=$?
+echo
+[ $retval -eq 0 ] && rm -f $lockfile
+return $retval
+
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+[ -x $exec ] || exit 5
+[ -f $config ] || exit 6
+echo "starting"
+daemon --pidfile=${pidfile} $exec $args
+retval=$?
+[ $retval -eq 0 ] && touch $lockfile
+return $retval
