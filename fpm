@@ -1,2 +1,35 @@
 fpm -s dir -t deb -n myinitfiles -v 1.0 /etc/init.d/
 fpm -s dir -t rpm -n myinitfiles -v 1.0 /etc/init.d/
+
+-s: dir rpm gem python
+-t: rpm deb solaris puppet
+
+
+
+$) make install DESTDIR=/tmp/installdir
+
+$) fpm -s dir -t deb -n nodejs -v 0.6.0 -C /tmp/installdir -p nodejs-VERSION_ARCH.deb -d "libssl0.9.8 (> 0)" -d "libstdc++6 (>= 4.4.3)" usr/bin usr/lib
+
+$) fpm -s dir -t deb -p nodejs-doc-VERSION_ARCH.deb -n nodejs-doc -v 0.6.0 -C /tmp/installdir usr/share/man
+
+
+wget http://ftp.osuosl.org/pub/hudson/war/$(VERSION)/jenkins.war
+fpm -s dir -t deb -n jenkins -v 1.396 --prefix /opt/jenkins jenkins.war
+
+
+fpm -s gem -t deb json
+
+
+
+Some systems package python with packages named 'python24' and 'python26' etc.
+
+You can build packages like this with fpm using the suffix (-S) flag:
+
+fpm -s python -t rpm -S 26 pyramid
+fpm -s python -t rpm -S 26 -v 2.5.6 'pysqlite'
+
+fpm -s gem -t deb -v 2.2.2 rails
+
+
+gem install --no-ri --no-rdoc --install-dir /tmp/gems cucumber
+find /tmp/gems/cache -name '*.gem' | xargs -rn1 fpm -s gem -t deb
