@@ -162,7 +162,7 @@ task "clean_nginx_topip", group => "frontend_nginx", sub {
 task "nginx_topurl", group => "frontend_nginx", sub {
     my $server = connection->server;
 
-    print "{$server\t=>\n", split /\r/, run "head -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:02:[12]' | grep Regist | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    print "{$server\t=>\n", split /\r/, run "head -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:02:[12]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
     print "\n};\n";
 };
 
