@@ -1,0 +1,133 @@
+NAGIOS版本：nagios-3.2.3.tar.gz
+
+NAGIOS插件版本：nagios-plugins-1.4.15.tar.gz
+
+Check_mk版本：check_mk-1.1.10p2.tar.gz
+
+Check_mk插件版本：check_mk-agent-1.1.10p2-1.noarch.rpm
+
+存放路径：/tmp 
+
+虚拟系统：SUSE 10.0 Linux Version 2.6.13-15-default
+
+安装前准备：（使用YAST）
+
+1. 安装apache：安装所有以“apache2”开头的package
+
+2. 安装C/C++编译器：gcc、gcc-c++
+
+3. 检查python是否为2.X版本，check_mk不支持3.X ：python -V
+
+4. 安装xinetd
+
+创建用户：
+
+su -l
+
+/usr/sbin/useradd -m nagios
+
+passwd nagios
+
+/usr/sbin/groupadd nagios
+
+/usr/sbin/usermod -G nagios nagios
+
+/usr/sbin/groupadd nagcmd
+
+/usr/sbin/usermod -G nagcmd nagios
+
+/usr/sbin/usermod -G nagcmd wwwrun
+
+安装Nagios主程序:
+
+cd /tmp
+
+tar xzf nagios-3.2.3.tar.gz
+
+cd nagios-3.2.3
+
+./configure --with-command-group=nagcmd
+
+make all
+
+make install
+make install-init
+make install-config
+make install-commandmode
+make install-webconf
+
+创建web登录账户并设置密码：
+
+htpasswd2 -c /usr/local/nagios/etc/htpasswd.users nagiosadmin
+
+启动apache服务：    rcapache2 restart
+
+安装Nagios插件：
+
+cd /tmp
+
+tar xvf nagios-plugins-1.4.11.tar.gz
+
+cd nagios-plugins-1.4.11
+
+./configure --with-nagios-user=nagios --with-nagios-group=nagios
+
+make
+
+make install
+
+配置Nagios，重启系统后Nagios自动启动：
+
+chkconfig --add nagios
+
+chkconfig nagios on
+
+检查Nagios配置：
+
+/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg
+
+启动Nagios服务：
+
+/etc/init.d/nagios start登录Web页面：
+
+http://localhost/nagios/
+
+请确保Nagios正常安装后执行之后的安装。
+
+安装Check_mk主程序：
+
+cd /tmp
+
+tar xvf check_mk-1.1.10p2.tar.gz
+
+cd check_mk-1.1.10p2
+
+./setup.sh基本使用默认配置，如果需要修改，请使用绝对路径
+
+如果需要安装新版本的check_mk，请先删除文件：check_mk_setup.conf，在进行安装
+
+检查安装是否成功，成功会显示相关版本信息：
+
+check_mk --version
+
+安装Check_mk插件：
+
+cd /tmp
+
+rpm -icheck_mk-agent-1.1.10p2-1.noarch.rpm
+
+配置Check_mk：
+
+cd /etc/check_mk/
+
+vi main.mk
+
+文件修改成：all_hosts = [ "Localhost" ]
+
+check_mk -I
+
+check_mk -O
+
+登录Web页面：
+
+http://localhost/nagios/

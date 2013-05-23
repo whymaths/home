@@ -1,5 +1,0 @@
-#dev-null-is-not-a-character-device-problem
-
-rm -f /dev/null
-mknod /dev/null c 1 3
-

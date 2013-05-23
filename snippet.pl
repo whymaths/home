@@ -270,19 +270,19 @@ sub convert2binary {
 chdir(dirname(__FILE__));
 
 
-sub currenttime {
-    my @now_time = localtime(time);
-
-    my $year = $now_time[5] + 1900;
-    my $month = $now_time[4] + 1;
-    my $day = $now_time[3];
-
-
-    my $now_time = "$year" . "_" . "$month"."_"."$day"."_"
-    ."$now_time[2]" . "_" . "$now_time[1]"."_"."$now_time[0]";
-
-    return $now_time;
-}
+#sub currenttime {
+#    my @now_time = localtime(time);
+#
+#    my $year = $now_time[5] + 1900;
+#    my $month = $now_time[4] + 1;
+#    my $day = $now_time[3];
+#
+#
+#    my $now_time = "$year" . "_" . "$month"."_"."$day"."_"
+#    ."$now_time[2]" . "_" . "$now_time[1]"."_"."$now_time[0]";
+#
+#    return $now_time;
+#}
 
 require 'sys/ioctl.ph';
 sub get_ip_address($) {
@@ -505,3 +505,20 @@ sub unpack_ip {
 # chinese
 $foo =~ s/[\x80-\xff]//g;
 
+
+
+sub currenttime {
+    my @now_time = localtime(time);
+
+    my $year = $now_time[5] + 1900;
+    my $month = sprintf("%02d", $now_time[4] + 1);
+    my $day = sprintf("%02d", $now_time[3]);
+
+    my $hour = sprintf("%02d", $now_time[2]);
+    my $minute = sprintf("%02d", $now_time[1]);
+    my $second = sprintf("%02d", $now_time[0]);
+
+    my $now_time = "$year/$month/$day\_$hour:$minute:$second";
+
+    return $now_time;
+}

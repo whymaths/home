@@ -12,6 +12,8 @@ group "pp" => "10.16.11.[21..40]", "10.11.149.[24..35]", "10.11.149.37", "10.11.
 
 group "bx" => "10.16.11.[21..40]";
 
+group "mq" => "10.16.11.[27..29]";
+
 
 desc "Get Disk Free";
 task "disk_free", group => "pp", sub {
@@ -157,11 +159,21 @@ task "clean_nginx_topip", group => "frontend_nginx", sub {
 };
 
 
+task "nginx_topurl", group => "frontend_nginx", sub {
+    my $server = connection->server;
+
+    print "{$server\t=>\n", split /\r/, run "head -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:02:[12]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    print "\n};\n";
+};
 
 
-#task "upload", group => "bx", sub {
-#    upload "git-1.7.9.6-1.el5.rf.x86_64.rpm", "/opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";
-#};
+task "upload_kestrel", group => "bx", sub {
+    upload "backup/kestrel-2.4.1.tar.gz", "/opt/kestrel-2.4.1.tar.gz";
+};
+
+task "upload_jdk", group => "bx", sub {
+    upload "backup/jdk-6u39-linux-x64.bin", "/opt/jdk-6u39-linux-x64.bin";
+};
 
 task "install_git", group => "bx", sub {
     my $server = connection->server;
@@ -178,3 +190,10 @@ task "git_clone", group => "bx", sub {
     print "$server\t=>\n", split /\r/, run "rm -rf /opt/work/boost.git; git clone http://test:test\@10.10.85.29:5000/boost.git /opt/work/boost.git";
     print "\n};\n";
 };
+
+
+task "list_mq", group => "mq", sub {
+    my $server = connection->server;
+    print "$server\t=>\n", split /\r/, run "ls -l /opt/kestrel/queues/";
+    print "\n";
+}
