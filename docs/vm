@@ -1,0 +1,24 @@
+Cloud Foundry刚推出时，用户部署的应用可以在内网畅通无阻，跑满CPU，占尽内存，写满磁盘。因此，Cloud Foundry开发出了Warden，用这个程序运行容器解决这一问题。这个容器提供了一个隔绝环境，Droplet只可以获得受限的CPU、内存、磁盘访问权限和网络权限。
+
+Warden在Linux上的实现是将Linux 内核的资源分成若干个namespace加以区分，底层的机制是CGROUP。这样的设计比虚拟机性能好，启动更快，也能够获得足够的安全性。
+
+DEA （Droplet Execution Agency）。首先要解释下什么叫做Droplet。在Cloud Foundry中，Droplet指把提交的源代码及Cloud Foundry配置好的运行环境（如Java Web就是一个Tomcat），再加一些控制脚本，如start/stop等，全部打包在一起的tar文件。Staging App是指制作Droplet，然后把它存储起来的过程。Cloud Foundry会保存这个Droplet，直到启动（start）一个App时，一台部署了DEA模块的服务器会来拿这个Droplet的副本去运行。因此，如果将App扩展到10个实例（instance），那么这个Droplet就会被复制10份，供10台DEA服务器运行。
+
+DEA的运行原理没有发生根本改变：Cloud Controller模块会发送start/stop等基本的App管理请求给DEA，dea.rb接收这些请求，然后从blobstore下载合适的Droplet。前面说到Droplet是一个带有运行脚本和运行环境的tar包，DEA只需要把它拿过来解压，并执行里面的start脚本，就可让应用运行起来，App也就可以被访问了。换句话说，就是这台服务器的某一个端口已经在待命，只要有request从这个端口进来，这个App就可以接收并返回正确的信息。
+
+
+
+
+以部署一个App到Cloud Foundry为例。在输入push命令后，VMC开始工作。在做完一轮用户鉴权、查看所部署的App数量是否超过预定数额、问了一堆相关App的问题后，需要发4个指令。
+
+    发一个POST到“apps”，创建一个App；
+    发一个PUT到“apps/:name/application”，上传App；
+    发一个GET到“apps/:name/”，取得App状态，查看是否已启动；
+    如果没有启动，发一个PUT到“apps/:name/”，使其启动。
+
+
+可以说，Cloud Foundry的核心是一套消息系统，如果想了解Cloud Foundry的来龙去脉，跟踪它里面复杂的消息机制是非常好的方法。举个最简单的例子，一个装有DEA组件的服务器为加强云的计算能力，被加入到Cloud Foundry集群中。它首先需要表明已准备好随时提供服务，Cloud Controller可将App部署到它这里，Router也可将相关的请求交给它处理；Health Manger可定时为它体检等，它会发布一条消息到主题“dea.start”：
+
+    NATS.publish(‘dea.start’, @hello_message_json)
+
+@hello_message_json包括DEA的UUID、ip、 port、版本信息等内容。Cloud Controller、Router、Health Manger及其他模块会监听这个主题，得到通知，各自干活。

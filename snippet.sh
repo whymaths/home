@@ -26,6 +26,8 @@ sed '2,5d' datafile
 sed '/My/,/You/d' datafile
 sed '/My/,10d' datafile
 
+sed 's!#keyfile.*!keyfile=/etc/mod_gearman/secret.key!' /etc/mod_gearman/mod_gearman_worker.conf
+
 
 
 killproc -p ${pidfile} $prog
