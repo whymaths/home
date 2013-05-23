@@ -1,0 +1,350 @@
+
+<!DOCTYPE HTML><html><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /><head><base id="relR" href="../index.html"></base><script>(function(){var l = location.href.replace(/#.*$/,''); if(/\.\w+$/.test(l)) l = l.replace(/[^\/]+$/, ''); var b = document.getElementById('relR'); b.href = l + b.getAttribute('href')})()</script><title>程序员时髦值指南 -- typeof.net</title><style>@import url(rc/css/style.css);</style><script src="rc/script/base.js"></script><link rel="alternate" type="application/rss+xml" title="Typeof.net RSS 2.0" href="http://typeof.net/rss.xml"></link></head><body id="page-body-c/shi-mao-zhi-test" class="default"><ul id="navbar"><li class="back"><span class="back"><a href="c/"><span class="icon-arrow-left"></span><span class="text">(parent)</span></a></span></li><li><a href=""><strong>typeof.net</strong></a></li><li><a href="about.html">(about)</a></li><li><a href="javascript:void((function(svc) {var d=document,w=window,p=0,b=function(){if(!p){p=1;if(_atc.xol)_adr.onReady();if(w.addthis_sendto)addthis_sendto(svc||'bkmore',{product:'bmt-'+_atc.ver})}else{p=0;if(_atw)_atw.clb()}};if(!w._atc){var ol=w.addthis_onload||[],o=d.createElement('script');w.addthis_product = 'bmt-250';o.src='//s7.addthis.com/js/250/addthis_widget.js#domready=1&username=bookmarklet';ol.push(b);w.addthis_onload=ol;d.getElementsByTagName('body')[0].appendChild(o)}else b()})())">(share)</a></li></ul><div id="headarea"><h1 id="pageTitle"><a href="c/shi-mao-zhi-test.html">程序员时髦值指南</a></h1></div><div id="contents"><article><!-- !!Nagisa!BE!! -->
+<p>点进全文做测试。</p>
+<p><strong>特别注意：此测试为调侃程序圈内之现象而作，纯属娱乐。</strong></p>
+<p><strong>得分与受测者之真实编程水平无关。</strong></p>
+<!-- !!Nagisa!FI!! -->
+
+<div id="questions"></div>
+<div id="score">您的时髦值是 <strong id="scoreMarks">0</strong></div>
+<style>
+#questions .hideChild ol {display: none}
+#questions>ol{font-weight:bold}
+#questions>ol ol{font-weight:normal}
+#score {position: fixed; left: 17.5em;top:5em;font-size:2em;text-align:center;border:1px solid #ddd;padding:0.2em;width:7em}
+#score #scoreMarks{display:block;font-size:1.5em;}
+#score .err {color:red}</style>
+<script>
+var questions = {
+    "电脑硬件使用侧" : {
+        "笔记本":{
+            "我用 MacBook Pro": +80,
+            "我用 MacBook Air": +64,
+            "我用 Thinkpad":    +32,
+            "我用神船我自豪":   -80,
+        },
+        "台式机":{
+            "我用 Mac Pro": +72,
+            "我用 iMac": +64,
+            "我手工好我会 DIY 电脑":{
+                "__base":   +16,
+                "2000 元以上 CPU":  +16,
+                "2000 元以上显卡":  +16,
+                "两块或以上显卡":   +80,
+                "我是土豪我快乐，老子就要组水冷":   {
+                    "__base": +160,
+                    "而且用金属管": +320,
+                },
+            },
+            "我买的品牌机": -256,
+        },
+        "外设":{
+            "我用机械键盘": {
+                __base: +48,
+                "而且我换过键帽":   +64
+            },
+            "我用 Realforce 键盘":  +80,
+            "我不用 HHKB 就不舒服": +160,
+            "我是纯爷们我用 IBM Model M":   +320,
+            "我用 200 元以上耳机":  {
+                __base: +32,
+                "我用 1000 元以上耳机": {
+                    __base: +80,
+                    "我用 2000 元以上耳机": {
+                        __base: +120,
+                        "而且有独立耳放":   +80,
+                        "我有大奥！":   "便宜求出，预算 500",
+                    },
+                },
+            },
+            "我有两块以上屏幕": {
+                __base: 80,
+                "我有三块以上屏幕" : 160
+            }
+        },
+    },
+    "移动设备使用侧" :{
+        "手机" : {
+            "我用 iPhone":  +128,
+            "我用 Android": +64,
+            "我控 LOLI 我用 Windows Phone": +32,
+            "我用 Palm 划卡片无比风骚": +64,
+            "我不用智能机我自豪":   +320,
+        },
+        "平板部分" : {
+            "使用 iPad":    +80,
+            "使用 Nexus 7/Nexus 10":    +80,
+            "使用其他 Android 平板":    +6,
+            "我是巨硬脑残粉我用 Surface":   +32,
+        },
+    },
+    "操作系统使用侧" : {
+        "我用 Mac 系统":    {
+            __base: +48,
+            "我用黑苹果":   -8,
+        },
+        "我用 Linux 系统": {
+            __base: +48,
+            "我用 Arch 发行版": +32,
+            "我用 Gentoo 发行版":   +48,
+            "开天辟地我牛叉，老子用的是 LFS":   +160,
+        },
+        "我用 Mac 外的 BSD 操作系统": +64
+    },
+    "编辑器/编程工具使用侧" : {
+        写代码 : {
+            __childrenExclusive: true,
+            "我用 Vim": {
+                __base: +40,
+                "同时我也用 Emacs": "同时用 Vim 和 Emacs，这人早被烧死了\n"
+            },
+            "我用 Emacs": {
+                __base: +40,
+                "同时我也用 Vim": "同时用 Vim 和 Emacs，这人早被烧死了\n"
+            },
+            "我就喜欢简洁美，老子就用记事本":   +1024,
+            "我用其他的编辑器/IDE": {
+                __base: 0,
+                "我用 Sublime Text":    +16,
+                "我用 Eclipse": +8,
+                "我用 Idea/PyCharm/WebStorm": +16,
+                "我用 Visual Studio":   -8,
+                "我用 VC6": -80,
+            }
+        },
+        "写文档" : {
+            "我用 TeX": +48,
+            "我用 Indesign":    +80,
+            "我用 Word":    -16,
+            "我很拽我从来不写文档": {
+                __base: +159,
+                "我连注释都不写": +255
+            }
+        },
+    },
+    "编程语言使用侧" : {
+            "我用 C":   +8,
+            "我用 C++": +16,
+            "我用 Java":    0,
+            "我用 C#":  0,
+            "我用 Python/Ruby/JavaScript":  0,
+            "我用 Lisp/Scheme/Erlang/Haskell":  +32,
+            "我用汇编": +80,
+            "我会 HDL 自己做芯片":  +800,
+            "我 PHP 的威力世界一！":    +32,
+    },
+    "网络服务使用侧" : {
+        "社交类" : {
+            "我有新浪微博": +32,
+            "我有企鹅微博": +24,
+            "我有其他国内微博": +8,
+            "我刷推我自豪": +48,
+            "我用人人": +16,
+            "我上脸书": +32,
+            "我是开心脑残粉，老子天天去偷菜":   -16,
+            "我用 QQ":  -1,
+            "我用 MSN": +8,
+            "我用 GTalk":   +16,
+            "我用 IRC": +48,
+        },
+        "资讯类" : {
+            "我用XX新闻客户端了解天下大事": +8,
+            "我看新闻向来看外文":   +24,
+            "我用 Google Reader":   +16,
+            "你们居然看新闻？我只相信微博/推":  +48,
+        },
+        "编程相关" : {
+            "我用 Github":  +32,
+            "我用 Sourceforge": +16,
+            "我用 Google Code": 0,
+            "我用 Codeplex":    -8,
+            "代码托管是什么？有 FTP 就好":  -32,
+        },
+        "个人网站" : {
+            "我有域名": {
+                __base: +32,
+                "我有好多好多域名": +64,
+            },
+            "我有网站": {
+                __base: +32,
+                "我的网站用VPS":    +32,
+                "我的网站是独立服务器": "买得起独立服务器的绝对不是程序员\n",
+            },
+            "我用 Github Pages 建站":   +48,
+            "我用公共博客服务": {
+                __base: -5,
+                "而且是企鹅的": -55
+            },
+        },
+        "其他服务" : {
+            "我有知乎帐号": +16,
+            "我有 Quora 帐号":  +32,
+            "我有爆栈帐号": +24,
+            "我有 Dribbble 帐号":   +128,
+            "我天天刷 CSDN":    -64,
+        },
+    },
+    "个人项目侧" : {
+        "我参与了开源项目": {
+            __base: +5,
+            "是著名项目":   +128,
+            "是我自己的项目":   {
+                __base: +16,
+                "是我自己的著名项目":   +16384,
+            },
+        },
+        "我参与了大型商业软件的开发": {
+            __base: +3,
+            "是巨硬的": {
+                __base: -5,
+                "而且我参与了开源项目": "我们中出了一个叛徒！\n"
+            },
+        },
+        "我写过操作系统": +256,
+        "我写过编译器": {
+            __base: +192,
+            "是编译到机器代码的":   +256,
+            "是 Lisp 方言": +48,
+            "不支持 Windows":   +10,
+        },
+        "我写过图形渲染器": {
+            __base: +168,
+            "帧数高达 99fps":   +32,
+            "但是只能在巨硬的系统上用": -64,
+        },
+        "我做过游戏": {
+            __base: +64,
+            "是大型3D游戏": +64,
+            "是网游": {
+                __base: -12,
+                "被企鹅代理了": -48,
+            }
+        }
+    }
+}
+function createCheckedTree(tree) {
+    var ans = {};
+    for(var key in tree) {
+        if(typeof tree[key] === 'number' || typeof tree[key] === 'string') {
+            ans[key] = false
+        } else {
+            ans[key] = createCheckedTree(tree[key])
+        }
+    }
+    return ans;
+}
+var checked = createCheckedTree(questions);
+
+function calculateNodeScore(node, cnode){
+    var score = 0;
+    if('__base' in node){
+        if(cnode.__base) score += node.__base
+        else return 0
+    }
+    for(var key in node) if(!/^__/.test(key)) {
+        if(typeof(node[key]) === 'number') {
+            if(cnode[key]) score += node[key]
+        } else if(typeof(node[key]) === 'string') {
+            if(cnode[key]) throw (node[key])
+        } else {
+            score += calculateNodeScore(node[key], cnode[key]);
+        }
+    };
+    return score;
+}
+function recalculateScore() {
+    for(var j = 0; j < checkFunctions.length; j++){
+        checkFunctions[j]();
+    }
+    var score = 0;
+    try {
+        score = calculateNodeScore(questions, checked);
+        document.getElementById('scoreMarks').innerHTML = ('' + score).replace(/-/g, '\u2212');
+    } catch (e) {
+        document.getElementById('scoreMarks').innerHTML = '<span class="err">' + e + '</span>';
+    }
+};
+var checkFunctions = []
+var groupid = 0;
+function createDOMTree(tree, container){
+    var ol = document.createElement("ol");
+    container.appendChild(ol);
+    var gid = groupid++;
+    var childrenInputType = tree.__childrenExclusive ? 'radio' : 'checkbox'
+    for(var key in tree) if(!/^__/.test(key)){
+        var subtree = tree[key];    
+        if(typeof(subtree) === 'boolean') {
+            // common node
+            (function(t, k){
+                var li = document.createElement('li');
+                ol.appendChild(li);
+                var label = document.createElement('label');
+                li.appendChild(label);
+                var checkbox = document.createElement('input');
+                checkbox.type = childrenInputType;
+                checkbox.name = 'g' + gid;
+                checkFunctions.push(function(){
+                    t[k] = checkbox.checked;
+                })
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(k));
+                checkbox.onchange = function(){
+                    recalculateScore();
+                }
+            })(tree, key);
+        } else {
+            var li = document.createElement('li');
+            ol.appendChild(li);
+            // node with subtree
+            if('__base' in subtree){
+                (function(t, k, li, displayKey){
+                    var label = document.createElement('label');
+                    li.appendChild(label);
+                    var checkbox = document.createElement('input');
+                    checkbox.type = childrenInputType;
+                    checkbox.name = 'g' + gid;
+                    checkFunctions.push(function(){
+                        li.className = (checkbox.checked ? 'showChild' : 'hideChild');
+                        t[k] = checkbox.checked;
+                    });
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(displayKey));
+                    checkbox.onchange = function(){
+                        recalculateScore()
+                    };
+                    li.className = 'hideChild'
+                })(subtree, '__base', li, key)
+            } else {
+                li.appendChild(document.createTextNode(key))
+            };
+            createDOMTree(subtree, li);
+        }
+    };
+    container.appendChild(ol);
+};
+createDOMTree(checked, document.getElementById('questions'))
+</script>
+
+<!-- !!Nagisa!FI!! --></article><div class="page-index"><a href="c/shi-mao-zhi-test.html#headarea" class="top"><span>Top</span></a></div></div>
+<div id="foot"><div class="footcol first about"><section><h2>about</h2>Belleve Invis，一个［（只）会］写编译器的。<a href="about.html">详细...</a></section></div><div class="footcol second columns"><section><h2>栏目</h2><ul><li><a href="chaotix/"><span class="icon-folder-open-alt"></span> 混沌海</a></li>
+<li><a href="mechanix/"><span class="icon-folder-open-alt"></span> 机械镜</a></li>
+<li><p><span class="icon-folder-close-alt"></span> 系列文章</p>
+<ul><li><a href="s/jsmech/"><span class="icon-folder-open-alt"></span> JavaScript 原理</a></li>
+</ul></li>
+</ul></section></div><div class="footcol thirdetc"><section><h2>Friendship</h2><ul><li><a href="http://blog.zhaojie.me"><span class="icon-link"></span>老赵</a></li>
+<li><a href="http://www.cppblog.com/vczh/"><span class="icon-link"></span>vczh</a></li>
+<li><a href="http://www.byvoid.com"><span class="icon-link"></span>Karbo Kuo</a></li>
+</ul></section></div><div class="copyright"><p>Copyright (c) 2012-2013 Belleve Invis. Powered by <a href="http://github.com/be5invis/eido">Eido</a>.<br />
+<span style="color:#ccc">皖 ICP 备 13000597 号. Not made on a Mac :)</span></p></div></div><script>if(/^http:\/\/typeof\.net\//.test(document.location)){
+var _gaq = _gaq || [];
+_gaq.push(['_setAccount', 'UA-20324072-1']);
+_gaq.push(['_setDomainName', 'typeof.net']);
+_gaq.push(['_trackPageview']);
+
+(function() {
+var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+})();
+}</script></body></html>
+<!-- PAGEMETA eyJpZCI6ImMvc2hpLW1hby16aGktdGVzdCIsIml0c2VsZlVybCI6ImMvc2hpLW1hby16aGktdGVzdC5odG1sIiwiaW5mbyI6IjxsaSBjbGFzcz1cImJhY2tcIj48c3BhbiBjbGFzcz1cImJhY2tcIj48YSBocmVmPVwiYy9cIj48c3BhbiBjbGFzcz1cImljb24tYXJyb3ctbGVmdFwiPjwvc3Bhbj48c3BhbiBjbGFzcz1cInRleHRcIj4ocGFyZW50KTwvc3Bhbj48L2E+PC9zcGFuPjwvbGk+PGxpPjxhIGhyZWY9XCJcIj48c3Ryb25nPnR5cGVvZi5uZXQ8L3N0cm9uZz48L2E+PC9saT48bGk+PGEgaHJlZj1cImFib3V0Lmh0bWxcIj4oYWJvdXQpPC9hPjwvbGk+Iiwic3VtbWFyeSI6IiIsInRpdGxlIjoi56iL5bqP5ZGY5pe26aum5YC85oyH5Y2XIiwibGFzdFVwZGF0ZSI6IjIwMTMtMDUtMDlUMDk6MTg6MDMuMDAwWiIsImxpc3RBcnRpY2xlIjoidHJ1ZSIsInNob3dIZWFkQXJlYSI6dHJ1ZSwicGFnZUNsYXNzIjoiZGVmYXVsdCJ9 -->

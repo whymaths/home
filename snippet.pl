@@ -270,19 +270,19 @@ sub convert2binary {
 chdir(dirname(__FILE__));
 
 
-sub currenttime {
-    my @now_time = localtime(time);
-
-    my $year = $now_time[5] + 1900;
-    my $month = $now_time[4] + 1;
-    my $day = $now_time[3];
-
-
-    my $now_time = "$year" . "_" . "$month"."_"."$day"."_"
-    ."$now_time[2]" . "_" . "$now_time[1]"."_"."$now_time[0]";
-
-    return $now_time;
-}
+#sub currenttime {
+#    my @now_time = localtime(time);
+#
+#    my $year = $now_time[5] + 1900;
+#    my $month = $now_time[4] + 1;
+#    my $day = $now_time[3];
+#
+#
+#    my $now_time = "$year" . "_" . "$month"."_"."$day"."_"
+#    ."$now_time[2]" . "_" . "$now_time[1]"."_"."$now_time[0]";
+#
+#    return $now_time;
+#}
 
 require 'sys/ioctl.ph';
 sub get_ip_address($) {
@@ -431,4 +431,94 @@ sub y_n {
 
         print "Please answer 'y' or 'n'.\n";
     }
+}
+
+
+
+sub is_singleton($) {
+    my $lock_file = shift;
+
+    return 1 unless (-e $lock_file);
+
+    eval {
+        open my $lock, "<$lock_file" or die "open $lock_file error: $!";
+    };
+    print $@ if $@;
+    return 1 if $@;
+
+    my $pid;
+
+    while (<$lock>) {
+        chomp;
+        $pid = $_;
+    }
+
+    return 1 unless defined $pid;
+    return 1 if ($pid eq "");
+
+    my $cnt =  kill 0, $pid;
+
+    return 0 if $cnt == 1;
+    return 1;
+}
+
+
+
+
+# 5.10+
+my $home = $ENV{'HOME'} // $ENV{'LOGDIR'} // (getpwuid($<))[7] // die "You're homeless!\n";
+
+
+
+
+my @a = ( 1, 3, 6, 7, 9, 11, 15, 16, 18, 19, 21 );
+my @b = ( 1, 6, 7, 9, 15, 18, 19, 21 );
+
+my %c = map { $a[$_] => $_ } (0..$#a);
+my @d = map { $c{ $b[$_] } - $_ } (0..$#b);
+unshift @d, $#a + $#b + 10000;
+push @d, $#a + $#b + 10000;
+
+    # just need a number not equal to any existed element of @d. a non-integer, such as 0.5, is also OK.
+print map { $d[$_+2] - $d[$_ + 1] && $d[$_ + 1] - $d[$_] ? "\n" : "$b[$_]," } (0..$#b);
+
+# %c = ( 1 => 0, 3 => 1, 6 => 2, ..., 21 => 10 )
+# @d = ( 10017, 0, 1, 1, 1, 2, 3, 3, 3, 10017 )
+
+# output: "\n6,7,9,\n18,19,21,"
+
+
+
+sub pack_ip {
+    my $ip = shift;
+    return unpack("N", pack("C4", split(/\./, $ip)));
+}
+
+sub unpack_ip {
+    my $packed = shift;
+
+    return join(".", ($pakcked >> 24, ($packed >> 16) & 255, ($packed >> 8) & 255, $packed & 255));
+}
+
+
+
+# chinese
+$foo =~ s/[\x80-\xff]//g;
+
+
+
+sub currenttime {
+    my @now_time = localtime(time);
+
+    my $year = $now_time[5] + 1900;
+    my $month = sprintf("%02d", $now_time[4] + 1);
+    my $day = sprintf("%02d", $now_time[3]);
+
+    my $hour = sprintf("%02d", $now_time[2]);
+    my $minute = sprintf("%02d", $now_time[1]);
+    my $second = sprintf("%02d", $now_time[0]);
+
+    my $now_time = "$year/$month/$day\_$hour:$minute:$second";
+
+    return $now_time;
 }

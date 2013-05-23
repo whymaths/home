@@ -1,0 +1,177 @@
+原来以为 Moo 不会象 Moose 一样可以支持元类。测试了一下，发现也支持，这个功能对于我们想了解类的方法和属性，但又并不想深入了解类的代码细节时，就能派上用处了。元类是用来描述类的类。在 Moose 中，每一个你定义的类都有一个meta()方法。meta()方法返回元信息的实例，其中有一个自省 API 可以告诉你它代表的类。
+
+
+my $meta = $configloader->meta;
+for my $attr ( $meta->get_all_attributes ) { 
+    print $attr->name()."\n";
+}
+ 
+for my $method ( $meta->get_all_methods ) { 
+    print $method->name()."\n";
+}
+
+
+
+package Person;
+use Moose;
+use namespace::autoclean;
+# extends, roles, attributes, etc.
+# methods
+__PACKAGE__->meta->make_immutable;
+1;
+
+
+use namespace::autoclean让你的代码命名空间变得简洁,在perl编译完代码之后，它会帮助你移除掉导入的moose的符号表，一旦，这个类已经编译完成之后，这些语法糖以及关键字就不再是我们需要的了。
+
+make_immutable可以加快Moose的速度，尤其是在创建对象的时候，当然你得为此付出点代价，那就是一旦你使用了它，你就不能再去更改你所定义的class了.
+
+
+绝不要复写new()
+
+复写new方法是非常差劲的选择，在Moose里面，我们推荐你用 BUILD 或者 BUILDARGS 去代替，如果你覆写了new方法，之前的immutable加速就不起作用了.
+
+另外有2种情况是我们可以选择覆写new方法的，一种是你想要写一个MooseX的扩展，需要提供一个Moose::Meta::Method::Constructor的子类，另外一种就是你的父类并不是用Moose写的.
+
+
+总是调用父类的BUILDARGS
+
+如果你在你的class里面覆写了BUILDARGS方法,请一定要使用 super()方法来调用.
+
+Moose::Object里面的BUILDARGS方法默认是可以处理hash命名参数以及列表参数的，并且还可以处理<non-hashref>的单个参数.
+
+
+
+无论何时,要么提供属性的默认值, 要么就使用 required
+
+当你的class提供了默认值的时候，会让你创建对象变得很easy，如果你没有办法提供默认值，考虑对你的class的属性使用 required.
+
+如果你2者都没有做，一不小心，一个属性会被你忽略掉或者没有设置值，这就会让你的对象变得复杂并且容易出错，因为很多情况下，你自己或者你的同事不会去一一核对每一个属性.
+
+
+在大多数时间里用 builder 代替 default
+
+Builders是可以被继承的，并且写起来相当简洁。
+另外，在default是non-reference或者空引用的时候，你还是应该使用default来初始化属性.
+
+
+Be lazy
+
+Lazy是一个非常好的特性，它可以改变参数处理的次序，使得你参数处理更加高效，除非你的属性是 required 或者琐碎的，我们推荐你使用lazy来让你的属性处理更加人性化，因为并不是所有的属性都是必要的。
+
+
+小心使用 clear 和 predicate
+
+并不是每一个熟悉都需要设置clear方法，使用predicate会让问题变得更少.
+
+
+注意属性的权限
+
+如果你设置了属性可以更改，程序会变得复杂起来，当然有时候这样的设置会让你的程序更容易被他人定制。
+
+如果你一定要让一个属性变得可读可写，你可以提供一个私有的方法，通过这个私有的方法来修改属性，这也会让代码变得更好维护.
+
+为了声明一个这样的属性，提供一个私有的 writer 方法
+has pizza => (
+        is     => 'ro',
+        isa    => 'Pizza',
+        writer => '_pizza',
+    );
+
+
+在子类更改一个属性的类型
+
+这个话题有很大的争议，如果一个属性是对象本身，至少要确保它有与父类一样的接口.
+
+
+
+不要使用 initializer 特性
+
+不知道我们在说什么？恩，非常好，不知道最好.
+
+
+使用Moose::Meta::Attribute::Native traits 代替 auto_deref
+
+auto_deref 是个麻烦的玩意，扔在代码里也会觉得很难看，好在我们有替代的东西，你可以通过使用the Moose::Meta::Attribute::Native manpage traits来定义API，这些API只会显示一些必要的功能.
+
+
+
+总是使用 inner
+
+在使用 augment 和inner的时候，我们推荐你在大多数具有特殊的子类调用 inner ,这会让我们在将来扩展代码的时候不需要改变父类的代码.
+为你的类型定义作命名空间
+
+为你的对象类型取名的时候，我们推荐你像这样命名，例如：”MyApp::Type::FOO”,另外还有一个 the MooseX::Type manpage的模块可以实现一样的功能。
+
+
+
+不要直接转换Moose内置的类型
+
+如果你强制转换了Moose内置的 Arrayref 类型，这将会所有与此类型有关的代码。
+
+
+
+# very naughty!
+coerce 'ArrayRef'
+      => from Str
+      => via { [ split /,/ ] };
+
+为了避免，我们创建一个字类型然后进行转换
+
+subtype 'My::ArrayRef' => as 'ArrayRef';
+coerce 'My::ArrayRef'
+    => from 'Str'
+    => via { [ split /,/ ] };
+
+
+不要直接转换类型名称
+
+就像Moose的内建类型，一个类型是全局的，如果你对一个类型进行强制转换，会产生奇妙的效果
+
+# also very naughty!
+coerce 'HTTP::Headers'
+    => from 'HashRef'
+    => via { HTTP::Headers->new( %{$_} ) };
+
+我们还可以为类型转换创造一个空的子类型
+
+subtype 'My::HTTP::Headers' => as class_type('HTTP::Headers');
+coerce 'My::HTTP::Headers'
+    => from 'HashRef'
+    => via { HTTP::Headers->new( %{$_} ) };
+
+使用coercion 代替union
+
+考虑使用一个coercion类型代替一个unit类型，这在the Moose::Manual::Types manpage里面提到过。
+
+
+在一个模块里定义你的 type 和 coercions
+
+在一个模块里定义所有你的type<类型>和coercions<类型转换>,我们在the Moose::Manual::Types manpage已经详细描述过.
+
+
+
+最佳实践的优点
+
+遵循这些实践会有很多好处.它让你的代码变得比别人的漂亮，稳定，高效，更容易维护和扩展.
+
+我们把这些叫做perl的习语，引导你做正确的事情，避免一些错误的发生.
+
+
+
+
+Moose有一个特性叫做”immutabilization”,使用它可以大大提高你的class的运行速度，只是在刚开始载入的时候有一些损耗。当你使用了这一特性，你将不能再改变class里面的任何的attributes,method,roles,etc
+
+这么干会为你的class专门生成内联的构造函数，让对象构造的速度更快速.
+
+要使用这一特性，你只需要通过meta来调用 make_immutable
+
+__PACKAGE__->meta->make_immutable;
+
+
+Immutabilization 和 new()
+
+Immutabilization也不是万能的，如果你有傻逼的写了自己的new函数，就完全起不到加速的效果，除非你调用了 BUILD 方法，此方法会直接调用内联的构造函数.
+
+如果你真的需要编写自己的new方法，你可以编写自己的immutabilization方法，这么做需要扩展Moose的metaclass，这里的内容日后再说吧，哥还没看过呢.
+
+
