@@ -1,7 +1,5 @@
 #define STR_WITH_LEN(str) (str), (sizeof(str) - 1) 
 
-
-
 // Like assert(), but executed even in NDEBUG mode
 #undef CHECK_CONDITION
 #define CHECK_CONDITION(cond)                                            \
