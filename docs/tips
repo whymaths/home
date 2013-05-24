@@ -4,3 +4,24 @@ rm -f /dev/null
 mknod /dev/null c 1 3
 
 /opt/work/memcached/bin/memcached -u memcache -d -m 4096 -l 0.0.0.0 -p 11215 -U 11215 -P /tmp/memcached_11215.pid
+
+
+ps aux | sort -nk +4 | tail
+
+curl -u user:pass -d status="Tweeting from the shell" http://twitter.com/statuses/update.xml
+
+curl -u username –silent "https://mail.google.com/mail/feed/atom" | perl -ne 'print "\t" if /<name>/; print "$2\n" if /<(title|name)>(.*)<\/\1>/;'
+
+
+mtr coolshell.cn
+
+> file.txt
+
+date -d@1234567890
+
+mtr google.com
+
+:w !sudo tee %
+
+
+tr [:blank:] '\n' | grep -v "^$" | sort | uniq -c

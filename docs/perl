@@ -1,1 +1,31 @@
 study
+
+--Inline::C
+--XS
+--SWIG
+
+Inline::C is great for prototyping, but XS is much better for production.
+
+
+
+I'm not particularly fond of SWIG and prefer to write the interfacing code myself. Perl comes with a sort of pseudo language called 'XS' for interfacing to C or C++. Unfortunately, in order to use it, you will need to know at least C, Perl, and then learn something about the interpreter API, too. If you already know Perl and C well, it's not such a big step. Have a look at the following core documents on XS:
+
+    perlxstut (XS tutorial)
+    perlxs (XS reference)
+    perlapi (Interpreter API)
+
+Additionally, there's plenty of tutorials and how-tos on the internet.
+
+Now, interfacing to C++ using XS requires some additional steps. It can be a bit frustrating to work out at first, but neatly falls into place once you get it. In this regard, the core documentation is sparse at best. But all is not lost. Mattia Barbon, the creator of the wxWidgets bindings for Perl, wrote a great tool "XS++" that makes this almost dead simple (or as simple as XS). It's included in Wx, but we're working on splitting it out into its own distribution. This is work in progress. You can find Mattia's XS++ code and a modified version of mine on github.
+
+Barring a release of a standalone XS++ to CPAN, I would suggest learning to write XS for C++ from other resources:
+
+    Quite a long time ago, John Keiser wrote an excellent tutorial on XS and C++. It also includes further pointers to useful tools and documentation.
+    I learned XS&C++ from that tutorial and some examples I found on CPAN. I don't recall what I looked at then. But now I can point to my own work as a (good or bad, I don't know) example: Math::SymbolicX::FastEvaluator.
+    Similarly, the planned XS++ distribution contains a complete (albeit pointless) example of using XS++ to interface C++ and Perl. Since XS++ is translated to plain XS, you can use it to generate examples.
+
+PS: There's also the Inline::CPP module. If that works, it is probably the easiest solution. I doubt it can handle templates, though.
+
+
+
+XS++ has been released as ExtUtils::XSpp to CPAN: search.cpan.org/dist/ExtUtils-XSpp It's still in its early days, but I've successfully built Wx.pm with it.

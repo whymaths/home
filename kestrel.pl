@@ -51,10 +51,10 @@ my $memd = new Cache::Memcached::Fast({
 #} 1..100;
 
 map {
-    map {
-        my $rt = producer($queue, $_);
-        say "error" unless $rt;
-    } 1..1000;
+    #map {
+    #    my $rt = producer($queue, $_);
+    #    say "error" unless $rt;
+    #} 1..1000;
     
     while (1) {
         my $v = consumer($queue);
@@ -68,7 +68,7 @@ map {
     }
 
     $memd->delete($queue);
-    sleep 10;
+    sleep 2;
 } 1..1000;
 
 

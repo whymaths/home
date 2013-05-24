@@ -123,8 +123,8 @@ for my $line (@queues_infos) {
         #print "$line\n";
         my $item_msg = $1;
         my $item_value = $2;
-        save_to_redis("$item_msg\@$server", $item_value);
-        #save_to_status_file("$item_msg\@$server", $item_value);
+        #save_to_redis("$item_msg\@$server", $item_value);
+        save_to_status_file("$item_msg\@$server", $item_value);
         print "$item_msg($item_value)\n" if $more;
         #next if any { $_ eq "$server\:$item_msg" } @ignore_queues;
         next if exists $ignore_queues{"$server\:$item_msg"};
