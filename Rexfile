@@ -162,7 +162,18 @@ task "clean_nginx_topip", group => "frontend_nginx", sub {
 task "nginx_topurl", group => "frontend_nginx", sub {
     my $server = connection->server;
 
-    print "{$server\t=>\n", split /\r/, run "head -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:02:[12]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+
+    #print "{$server\t=>\n", split /\r/, run "tail -n 2000 /opt/nginx/logs/access.log | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    #print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+
+
+
+    #print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:14:[45]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:16:[01]' | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+
+    #print "{$server\t=>\n", split /\r/, run "head -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:02:[12]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    #print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:[0-9]{2}:[12]' | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+
     print "\n};\n";
 };
 
