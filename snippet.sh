@@ -51,3 +51,6 @@ return $retval
 
 
 sqlite3 ~/.mozilla/firefox/btdo7us0.default/places.sqlite "delete from moz_places where url like '%weibo%';"
+
+
+cat ip.txt | xargs -n 1 -P 0 -I {} wget -q -e http_proxy={} -O {} "http://url/to/file"

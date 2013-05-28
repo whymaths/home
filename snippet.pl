@@ -522,3 +522,97 @@ sub currenttime {
 
     return $now_time;
 }
+
+
+
+
+
+
+# Calculate IP checksum
+ 
+sub in_cksum {
+ 
+    my ($packet) = @_;
+    my ($plen, $short, $num,  $count, $chk);
+ 
+    $plen = length($packet);
+    $num = int($plen / 2);
+    $chk = 0;
+    $count = $plen;
+ 
+    foreach $short (unpack("S$num", $packet)) {
+        $chk += $short;
+        $count = $count - 2;
+    }
+ 
+    if($count == 1) {
+        $chk += unpack("C", substr($packet, $plen -1, 1));
+    }
+ 
+    # add the two halves together (CKSUM_CARRY -> libnet)
+    $chk = ($chk >> 16) + ($chk & 0xffff);
+    return(~(($chk >> 16) + $chk) & 0xffff);
+}
+ 
+# Network/host byte order conversion routines.  Network byte order is
+# defined as being big-endian.
+ 
+sub htons
+{
+    my ($in) = @_;
+ 
+    return(unpack('n*', pack('S*', $in)));
+}
+ 
+sub htonl
+{
+    my ($in) = @_;
+ 
+    return(unpack('N*', pack('L*', $in)));
+}
+ 
+sub ntohl
+{
+    my ($in) = @_;
+ 
+    return(unpack('L*', pack('N*', $in)));
+}
+ 
+sub ntohs
+{
+    my ($in) = @_;
+ 
+    return(unpack('S*', pack('n*', $in)));
+}
+
+
+
+ 
+# Convert 32-bit IP address to dotted quad notation
+ 
+sub to_dotquad {
+    my($net) = @_ ;
+    my($na, $nb, $nc, $nd);
+ 
+    $na = $net >> 24 & 255;
+    $nb = $net >> 16 & 255;
+    $nc = $net >>  8 & 255;
+    $nd = $net & 255;
+ 
+    return ("$na.$nb.$nc.$nd");
+}
+
+
+
+# Strip header from packet and return the data contained in it
+#
+ 
+undef &ip_strip;           # Create ip_strip alias
+*ip_strip = \&strip;
+ 
+sub strip {
+    my ($pkt) = @_;
+ 
+    my $ip_obj = NetPacket::IP->decode($pkt);
+    return $ip_obj->{data};
+} 
