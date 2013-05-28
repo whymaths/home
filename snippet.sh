@@ -46,3 +46,8 @@ daemon --pidfile=${pidfile} $exec $args
 retval=$?
 [ $retval -eq 0 ] && touch $lockfile
 return $retval
+
+
+
+
+sqlite3 ~/.mozilla/firefox/btdo7us0.default/places.sqlite "delete from moz_places where url like '%weibo%';"
