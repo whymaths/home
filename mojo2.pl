@@ -28,12 +28,14 @@ use Mojo::UserAgent;
 
 my %already;
 
-my $ua = Mojo::UserAgent->new;
+my $ua = Mojo::UserAgent->new(timeout => 5);
 $ua->http_proxy("http://10.11.157.27:3128");
 
 my $from = shift @ARGV;
 
 $from = "http://$from" unless $from =~ m/^http:\/\//xms;
+
+print "from: $from\n";
 
 my $from_length = length $from;
 
@@ -53,6 +55,7 @@ my $callback; $callback = sub {
         my $attrs = shift->attrs;
 
         my $newurl = $attrs->{href};
+        utf8::encode($newurl);
 
         my $newurl_md5 = md5_hex($newurl);
 
@@ -61,7 +64,7 @@ my $callback; $callback = sub {
         #my $met = $redis->get($newurl_md5);
         #unless ($met) {
         unless(exists $already{$newurl_md5}) {
-            print "$newurl", "\n";
+            print "second: $newurl", "\n";
             #$redis->set($newurl_md5, 1);
             $already{$newurl_md5} = 1;
             $ua->get($newurl => $callback);
