@@ -1,0 +1,532 @@
+starman: 4901.93 [#/sec] (mean)
+twiggy:  3774.24 [#/sec] (mean)
+Feersum: 12171.39 [#/sec] (mean)
+Starlet: 5090.36 [#/sec] (mean)
+
+Book::Chinese::MasterPerlToday
+
+
+
+
+
+CGI::Emulate::PSGI
+Plack::App::CGIBin
+
+my $sub = CGI::Compile->compile("/path/to/script.cgi");
+my $app = CGI::Emulate::PSGI->handler($sub);
+
+
+plackup -MPlack::App::CGIBin -e 'Plack::App::CGIBin->new(root => "/path/to/cgi-bin"))'
+
+
+CGI::PSGI   CGI
+Catalyst::Engine::PSGI  Catalyst
+CGI::Application::PSGI CGI::Application
+
+
+use CGI::Application::PSGI;
+use WebApp;
+ 
+my $app = sub {
+    my $env = shift;
+    my $app = WebApp->new({ QUERY => CGI::PSGI->new($env) });
+    CGI::Application::PSGI->run($app);
+};
+
+
+use CGI::PSGI;
+ 
+my $app = sub {
+    my $env = shift;
+    my $q = CGI::PSGI->new($env);
+    return [ 
+        $q->psgi_header('text/plain'),
+        [ "Hello ", $q->param('name') ],
+    ];
+};
+
+package CGI::Application::PSGI;
+use strict;
+use CGI::PSGI;
+ 
+sub run {
+    my($class, $app) = @_;
+ 
+    # HACK: deprecate HTTP header generation
+    # -- CGI::Application should support some flag to turn this off cleanly
+    my $body = do {
+        no warnings 'redefine';
+        local *CGI::Application::_send_headers = sub { '' };
+        local $ENV{CGI_APP_RETURN_ONLY} = 1;
+        $app->run;
+    };
+ 
+    my $q    = $app->query;
+    my $type = $app->header_type;
+ 
+    my @headers = $q->psgi_header($app->header_props);
+    return [ @headers, [ $body ] ];
+}
+
+
+================================
+
+
+Task::Kensho
+Apache::BalancerManager
+Perl::Build
+Any::Moose deprecated
+
+File::chdir
+File::pushd
+
+
+Message::Passing::Output::ElasticSearch - output logstash messages into ElasticSearch.
+
+Storm is a Moose based library for storing and retrieving Moose based objects using a DBI connection.
+
+
+AnyEvent::DNS
+
+
+
+Test::Differences
+
+      The "dbi_connect_method" attribute can be used to specify
+       which driver method should be called to establish the
+       connection. The only useful values are 'connect',
+       'connect_cached', or some specialized case like
+       'Apache::DBI::connect' (which is automatically the default
+       when running within Apache).
+
+
+DBIx::Connector
+
+
+Module::ThirdParty
+
+Beanstalk::Client
+ZeroMQ
+RabbitMQ
+
+
+
+use File::Find;
+use File::Path;
+use File::Copy;
+use File::stat;
+use File::Basename;
+
+use Cwd;
+
+use DirHandle;
+
+use Text::Tabs;
+use Text::ParseWords;
+
+use Sys::Hostname;
+use Net::Ping;
+use Time::Local;
+
+
+
+
+
+Syntax::Keyword::Junction
+Quantum::Superpositions
+App::cpanoutdated
+App::pmuninstall
+App::perlbrew
+App::cpanminus
+Data::MessagePack
+
+
+Sub::Rate
+
+Keyword::Simple
+List::Compare
+Graphviz::DSL
+
+Dist::Zilla
+
+
+Data::WeightedRoundRobin
+Data::RoundRobinShared
+Data::RoundRobin
+AnyEvent::Worker
+
+TheSchwartz
+Helios
+Gearman
+    Gearman::Driver
+    AnyEvent::Gearman
+    Gearman::Spawner 
+    Gearman::WorkerSpawner
+Queue::Q4M(q4m)
+Resque: based on redis
+
+Mojolicious::Plugin::Resque
+
+
+Starman
+Starlet
+Perlbal
+Twiggy
+Feersum
+
+
+PDL
+
+yum install dsniff(tcpkill)
+
+
+
+git clone git://github.com/stf-storage/stf.git
+cd stf
+cpanm --installdeps .
+
+Queue-Q4M 
+
+RRDTool sysusage
+
+
+
+
+YAML::Syck
+JSON::Syck (is YAML::Syck)
+
+
+Net::Server::*
+Server::Starter
+HTTP::Parser::XS
+
+
+IO::Storm
+
+LatencyTOP
+
+carton - Perl module dependency manager (aka Bundler for Perl)
+
+
+
+Collectd+Graphite
+do one thing, do the best
+
+Graphite: carbon(a python-twisted); whisper (like rrd); graphite webapp(a Django webapp)
+
+http://www.vpsee.com/2012/05/use-collectd-with-graphite-to-monitor-servers/
+
+carbon-agent.py, carbon-cache.py carbon-persister.py
+
+cairo python-twisted mod_wsgi
+
+
+FreeRADIUS includes a RADIUS server, a BSD licensed client library, a PAM library, and an Apache module. In most cases, the word FreeRADIUS refers to the RADIUS server.
+
+
+pip-python
+
+python-setuptools
+perl-Time-Duration
+perl-TimeDate
+moreutils
+perl-File-Slurp
+sphinx
+pipestat
+socat
+python-pip
+perl-IPC-Run
+
+
+libxs enable-libzmq
+./configure --with-poller=epoll --enable-plugins --enable-libzmq  --enable-debug=yes
+
+https://github.com/twitter/finagle/blob/master/README.md#Quick%20Start
+
+https://github.com/twitter/finagle/tree/master/finagle-example/src/main/scala/com/twitter/finagle/example/memcachedproxy
+
+
+http://www.cacti.net/additional_scripts.php
+
+
+Perl6::Junction
+Function::Parameters(+5.14)
+Attribute::Handlers
+
+
+Damian Conway Parse::RecDescent
+
+Data::Rmap
+
+
+SVN::Notify::Mirror
+SVN::Notify
+
+
+use Regexp::Common qw /balanced/;
+
+cpanm snaked Proc::ProcessTable
+snaked --daemon --cfg /home/cnhacktnt/demo_snaked
+
+Smart::Options
+
+SSH::Batch
+
+
+autobox
+autodie
+
+
+
+perl5i
+Parallel::Runner
+
+
+
+Path::Class
+
+Package::Stash
+stashes (Perl's symbol tables)
+
+
+
+       Perl code is always compiled into an internal format before execution.
+
+       Evaluating perl code (e.g. via "eval" or "do 'file'") causes the code to be compiled into an internal
+       format and then, provided there was no error in the compilation, executed.  The internal format is based
+       on many distinct opcodes.
+
+       By default no opmask is in effect and any code can be compiled.
+
+       The Opcode module allow you to define an operator mask to be in effect when perl next compiles any code.
+       Attempting to compile code which contains a masked opcode will cause the compilation to fail with an
+       error. The code will not be executed.
+
+
+
+autovivification - Lexically disable autovivification.
+
+
+ "Net::Server" attempts to be a generic server as in "Net::Daemon" and "NetServer::Generic".  It includes
+       with it the ability to run as an inetd process ("Net::Server::INET"), a single connection server
+       ("Net::Server" or "Net::Server::Single"), a forking server ("Net::Server::Fork"), a preforking server
+       which maintains a constant number of preforked children ("Net::Server::PreForkSimple"), or as a managed
+       preforking server which maintains the number of children based on server load ("Net::Server::PreFork").
+       In all but the inetd type, the server provides the ability to connect to one or to multiple server ports.
+
+
+
+MooX::Singleton
+MooseX::Singleton
+Class::Singleton
+
+
+
+mtr
+socat
+
+
+netpipe
+
+task: TaskWarrior
+
+
+date -d@123456789
+
+echo `ls -l` | at midnight
+
+curl -u user:pass -d status="Tweeting from the shell" http://twitter.com/statuses/update.xml
+
+curl -u username -silent "https://mail.google.com/mail/feed/atom" | perl -ne 'print "\t" if /<name>/; print "$2\n" if /<(title|name)>(.*)<\/\1>/;'
+
+ps aux | sort -nk +4 | tail
+
+tail -f /path/to/file.log | sed '/^Finished: SUCCESS$/ q'
+
+ssh user@server bash < /path/to/local/script.sh
+
+
+ssh user@host cat /path/to/remotefile | diff /path/to/localfile -
+
+convert input.png -gravity NorthWest -background transparent -extent 720x200  output.png
+
+/usr/sbin/lsof -i
+
+curl ifconfig.me
+
+vim scp://username@host//path/to/somefile
+python -m SimpleHTTPServer
+
+
+history | awk '{CMD[$2]++;count++;} END { for (a in CMD )print CMD[a] " " CMD[a]/count*100 "% " a }' | grep -v "./" | column -c3 -s " " -t | sort -nr | nl | head -n10
+
+ps aux | grep curl | grep -v grep | awk '{print $2}' | xargs kill
+
+
+
+gem source -r http://rubygems.org/
+gem sources --remove http://rubygems.org/
+gem source -a http://ruby.taobao.org/
+gem sources -l
+
+
+SELECT gman_servers_set('192.168.1.60:4730,192.168.1.60:4731') as gman_servers; 
+create trigger sendmail before insert on udf_test for each row set @return=gman_do_background('MAIL','undef');
+
+
+
+plackup -MMoose -MDBIx::Class -L Shotgun myapp.psgi
+plackup -E production -s Starman hello.psgi
+plackup -s Starlet --host 127.0.0.1 --port 8080 hello.psgi
+plackup -s FCGI --listen /tmp/fcgi.sock app.psgi
+
+
+HOME=/opt plackup -p 5001 root.psgi
+    set $ENV{HOME}=/opt
+
+
+
+Dancer::Plugin::Stomp  Message::Passing::STOMP
+
+Net::Stomp
+Net::STOMP::Client
+Net::RabbitMQ
+Net::RabbitFoot
+AnyEvent::RabbitMQ
+
+The rabbitmq-memcached could act as a standalone proxy or an embedded plugin, and support TCP and UDP based memcache protocol. 
+
+The rabbitmq-memcached project is a memcached adapter for the RabbitMQ server, which allow you use the memcache protocol to get or publish a message from or to RabbitMQ, just like the memcached based MemcacheQ (Simple Queue Service over Memcache) project. 
+
+
+Apache2::Filter
+Message::Passing::Filter
+Log::Log4perl::Filter
+POE::Filter
+Template::Filters
+DBM_Filter(core)
+
+
+
+Email::Sender( Moo )
+Try::Catch
+TryCatch
+Carp::Always
+    perl -MCarp::Always script.pl
+Carp
+
+
+Devel::NYTProf
+
+
+URL::Encode
+URL::Encode::XS
+Feersum
+URI::Escape
+
+
+
+Compress::LZ4
+
+
+GD::Graph
+
+
+
+
+
+AnyEvent::DBI::MySQL
+DBIx::Custom 
+
+
+
+AnyEvent::DBI::MySQL
+
+
+
+
+
+iotop: python /proc
+
+
+
+Bloom::Filter
+
+
+Type::Tiny
+
+
+Test::Class::Moose
+
+
+Yote
+
+
+Net::SSH2
+Net::SSH Net::SSH::Perl
+Net::SSH::Expect IPC::PerlSSH
+
+
+
+NetPacket
+NetPacket::TCP
+NetPacket::IP
+Net::Pcap
+
+
+Crypt::Passwd::XS
+
+
+Dancer::Deployment
+Dancer2::Deployment
+
+AnyEvent::Fork
+AnyEvent::Fork::Pool
+AnyEvent::Worker::Pool
+
+Proc::FastSpawn
+
+
+
+1. HTTP::Daemon
+
+2. Net::Server::HTTP
+
+perl -e 'use base qw(Net::Server::HTTP); main->run(port => 8080)'
+
+3. HTTP::Server::Encrypt
+
+4. HTTP::Server::Simple
+
+
+Proc::Killfam
+
+Fork: Proc::Fork
+Daemon: Proc::Daemon
+
+
+
+1    126     Moose
+2    126     Class::MOP
+3    113     Mojolicious
+4    100     AnyDBM_File
+5    100     English
+6    100     Errno
+7    100     ExtUtils::Embed
+8    100     Getopt::Std
+9    100     Hash::Util
+10   100     Hash::Util::FieldHash
+11  100     NDBM_File Tied access to ndbm files
+12  100     Net::hostent by-name interface to Perls built-in gethost() functions
+13  100     Net::netent by-name interface to Perls built-in getnet() functions
+14  100     Net::protoent by-name interface to Perls built-in getproto() functions
+15  100     Net::servent by-name interface to Perls built-in getserv() functions
+
+
+
+ojo
+
+perl -Mojo -E 'say g("mojolicio.us")->dom->at("title")->text'
+
+
+perl-MailTools(Mail::)
