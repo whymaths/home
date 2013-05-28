@@ -530,3 +530,8 @@ perl -Mojo -E 'say g("mojolicio.us")->dom->at("title")->text'
 
 
 perl-MailTools(Mail::)
+
+
+Web::Scraper
+
+Carton
