@@ -32,7 +32,11 @@ my $ua = Mojo::UserAgent->new;
 $ua->http_proxy("http://10.11.157.27:3128");
 
 my $from = shift @ARGV;
+
+$from = "http://$from" unless $from =~ m/^http:\/\//xms;
+
 my $from_length = length $from;
+
 
 my $delay = Mojo::IOLoop->delay();
 
