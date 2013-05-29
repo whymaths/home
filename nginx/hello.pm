@@ -15,7 +15,7 @@ sub handler {
 
     $r->rflush;
 
-    if (-f $r->filename or -d $r->filename) {
+    if (-f $r->filename or -d _) {
         $r->print($r->uri, " exists!\n");
     }
 
