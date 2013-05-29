@@ -1,3 +1,10 @@
+open("/proc/net/dev", O_RDONLY);
+open("/proc/net/snmp", O_RDONLY);
+open("/proc/net/netstat", O_RDONLY);
+open("/proc/uptime", O_RDONLY);
+
+
+
 #define STR_WITH_LEN(str) (str), (sizeof(str) - 1) 
 
 // Like assert(), but executed even in NDEBUG mode

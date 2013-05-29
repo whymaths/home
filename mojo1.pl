@@ -25,7 +25,6 @@ use Redis;
 my $redis = Redis->new(server => "127.0.0.1:6379");
 $redis->set('time', time);
 
-
 #my $filter = Bloom::Filter->new(capacity => 100000, error_rate => 0.0001);
 
 my $ua = Mojo::UserAgent->new;
