@@ -169,7 +169,7 @@ if (exists $cared_memcached_infos{'curr_connections'}) {
         }
         else {
             print "ok, curr_conn(" . $status_msg;
-            exit $ERRORS{'CRITICAL'};
+            exit $ERRORS{'OK'};
         }
     }
     else {
@@ -179,11 +179,11 @@ if (exists $cared_memcached_infos{'curr_connections'}) {
         }
         elsif ($cared_memcached_infos{'curr_connections'} > $g_warn) {
             print "warning, curr_conn(" . $status_msg;
-            exit $ERRORS{'CRITICAL'};
+            exit $ERRORS{'WARNING'};
         }
         else {
             print "ok, curr_conn(" . $status_msg;
-            exit $ERRORS{'CRITICAL'};
+            exit $ERRORS{'OK'};
         }
     }
 }
