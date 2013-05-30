@@ -150,7 +150,7 @@ if (exists $cared_memcached_infos{'get_hits'}
             $cache_hits = sprintf("%.04s", $cache_hits);
 }
 else {
-    $cache_hits = "1";
+    exit $ERRORS{'UNKNOWN'};
 }
 
 
