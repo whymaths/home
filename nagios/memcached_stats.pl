@@ -2,15 +2,12 @@
 
 #===============================================================================
 # fengxiahou@sohu-inc.com (whymaths@gmail.com)
-#
-# echo delete UserInfo_Receive_0 | nc 10.11.65.19 11213
-# /opt/memcached/bin/memcached -u memcache -d -m 2048 -l 0.0.0.0 -p 11211 -U 11211 -P /tmp/memcached_11211.pid
 #===============================================================================
 
 use strict;
 use warnings;
 use utf8;
-#use diagnostics;
+use diagnostics;
 #use Modern::Perl;
 use Carp qw(croak carp confess);
 #use 5.010000;
@@ -24,7 +21,7 @@ use utils qw (%ERRORS &print_revision &support);
 
 use Getopt::Long;
 
-use Smart::Comments;
+#use Smart::Comments;
 
 my @cared_memcached_stats = (
     'curr_connections',
@@ -102,8 +99,8 @@ eval {
     ) or die "connection refused: $!\n";
 };
 
-exit $ERRORS{'CRITICAL'} if $@;
 print $@ if $@;
+exit $ERRORS{'CRITICAL'} if $@;
 
 $sock->autoflush(1);
 
