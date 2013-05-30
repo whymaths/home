@@ -10,7 +10,7 @@
 use strict;
 use warnings;
 use utf8;
-use diagnostics;
+#use diagnostics;
 #use Modern::Perl;
 use Carp qw(croak carp confess);
 #use 5.010000;
@@ -26,16 +26,10 @@ use Getopt::Long;
 
 use Smart::Comments;
 
-my $saved_status_file = "/opt/work/saved_status";
-
-use Tie::File;
-
-tie my @saved_status_array, "Tie::File", $saved_status_file or die "tie $saved_status_file: $!\n";
-
 my @cared_memcached_stats = (
     'curr_connections',
-    'total_connections',
     'get_hits',
+    'cmd_get',
 );
 
 my %cared_memcached_stats = map { $_ => 1} @cared_memcached_stats;
@@ -53,23 +47,24 @@ my (
     $g_server,
     $g_host,
     $g_port,
-    $g_unused,
+    $g_warn,
+    $g_critical,
     $more,
     $usage,
-
-    $blocked_servers,
 );
 
 
 GetOptions (
     's|servers=s'   => \$g_server,
     'p|port=i'      => \$g_port,
-    't|test=i' => \$g_unused,
+    'w|warn=i' => \$g_warn,
+    'c|critical=i' => \$g_critical,
     'm|more'    => \$more,
     'h|help'    => \$usage,
 );
 
-$g_unused ||= 10000;
+$g_warn ||= 800;
+$g_critical ||= 900;
 $g_port ||= 11211;
 
 $g_host = shift @ARGV;
@@ -80,18 +75,19 @@ if (defined $g_server && $g_server) {
     if ($g_server =~ m/:/xms) {
         my @tmp = split (/:/, $g_server);
         if ($#tmp) {
-            $g_host = $tmp[0] if is_ip($tmp[0]);
+            $g_host = $tmp[0] if is_ip_or_hostname($tmp[0]);
             $g_port = $tmp[1] if (defined $tmp[1] && $tmp[1] =~ m/^\d+$/xms);
-            $g_unused = $tmp[2] if (defined $tmp[2] && $tmp[2] =~ m/^\d+$/xms);
+            $g_warn = $tmp[2] if (defined $tmp[2] && $tmp[2] =~ m/^\d+$/xms);
+            $g_critical = $tmp[3] if (defined $tmp[3] && $tmp[3] =~ m/^\d+$/xms);
         }
     }
 }
 
-
-usage() unless (defined $g_host && is_ip($g_host)
-                && defined $g_port && $g_port =~ m/^\d+$/xms
-                && defined $g_unused && $g_unused =~ m/^\d+$/xms);
-
+usage() unless (defined $g_host && is_ip_or_hostname($g_host)
+                    && defined $g_port && $g_port =~ m/^\d+$/xms
+                    && defined $g_warn && $g_warn =~ m/^\d+$/xms
+                    && defined $g_critical && $g_critical =~ m/^\d+$/xms
+);
 
 use IO::Socket::INET;
 
@@ -126,59 +122,74 @@ until ($sock->eof()) {
 print $sock "quit\n";
 $sock->close;
 
+# @memcached_infos
 
 my $server = "$g_host:$g_port";
 
-# @memcached_infos
-
-my $memcached_status = "";
+my %cared_memcached_infos;
 
 for my $line (@memcached_infos) {
     if ($line =~ m/STAT\ (\S+)\ (\d+)\r$/gmx) {
-        #print "$line\n";
+        # $line
         my $item_msg = $1;
         my $item_value = $2;
         #save_to_redis("$item_msg\:$server", $item_value);
-        #save_to_status_file("$item_msg\:$server", $item_value);
         print "$item_msg($item_value)\n" if $more;
         next if exists $ignore_memcached_servers{"$server\:$item_msg"};
+        next unless exists $cared_memcached_stats{$item_msg};
 
-        my $server_item = "$server:$item_msg";
-        if (exists $special_memcached_servers{$server_item}) {
-            if ($item_value >= $special_memcached_servers{$server_item}) {
-                #
-            }
-        }
-        elsif ($item_value >= $g_unused) {
-            #
-        }
-        else {
-            #
-        }
-        $memcached_status .= "$item_msg:$item_value " if exists $cared_memcached_stats{"$item_msg"};
+        $cared_memcached_infos{$item_msg} = $item_value;
     }
 }
 
-untie @saved_status_array;
+my $cache_hits = $cared_memcached_infos{'get_hits'} / $cared_memcached_infos{'cmd_get'};
+$cache_hits = sprintf("%.04s", $cache_hits);
 
-exit $ERRORS{'CRITICAL'} if $blocked_servers;
+my $status_msg = $cared_memcached_infos{'curr_connections'}
+                    . "),cache_hits($cache_hits)"
+                    . "|curr_conn=" . $cared_memcached_infos{'curr_connections'} . ";$g_warn;$g_critical;0"
+                    . " cache_hits=" . $cache_hits . ";0.40;0.50;0"
+                    . "\n";
 
-print "memcached ok!|$memcached_status\n" unless $blocked_servers;
-exit $ERRORS{'OK'} unless $blocked_servers;
+if (exists $cared_memcached_infos{'curr_connections'}) {
+    my $server_item = "$server:curr_connections";
+    if (exists $special_memcached_servers{$server_item}) {
+        if ($cared_memcached_infos{'curr_connections'} > $special_memcached_servers{$server_item}) {
+            print "error, curr_conn(" . $status_msg;
+            exit $ERRORS{'CRITICAL'};
+        }
+        else {
+            print "ok, curr_conn(" . $status_msg;
+            exit $ERRORS{'CRITICAL'};
+        }
+    }
+    else {
+        if ($cared_memcached_infos{'curr_connections'} > $g_critical) {
+            print "error, curr_conn(" . $status_msg;
+            exit $ERRORS{'CRITICAL'};
+        }
+        elsif ($cared_memcached_infos{'curr_connections'} > $g_warn) {
+            print "warning, curr_conn(" . $status_msg;
+            exit $ERRORS{'CRITICAL'};
+        }
+        else {
+            print "ok, curr_conn(" . $status_msg;
+            exit $ERRORS{'CRITICAL'};
+        }
+    }
+}
 
+print "ok, curr_conn(" . $status_msg;
+
+exit $ERRORS{'OK'};
 
 
 sub usage {
 
-#define command{
-#        command_name    check_memcached_pl
-#        command_line    $USER1$/check_memcached.pl $HOSTADDRESS$ -p $ARG1$ -t $ARG2$
-#}
-
     print qq{
 Usage:
-$0 [host] -p 11211 -t 1000     # for nagios
-$0 -s 10.11.123.23:11211:1000   # for test
+$0 [host] -p 11211 -w 800 -c 900     # for nagios
+$0 -s 10.11.149.29:11111:800:900   # for test
 
 p|port t|test
 s|servers server lists
@@ -206,33 +217,17 @@ sub save_to_redis {
 }
 
 
-sub save_to_status_file {
-    my $key = shift @_;
-    my $value = shift @_;
-
-    my $key_met = 0;
-    my $array_length = $#saved_status_array;
-    for my $line (0..$array_length) {
-        if ($saved_status_array[$line] =~ m/$key\:\ (\d+)/xms) {
-            $saved_status_array[$line] = "$key: $value\n";
-            $key_met = 1;
-        }
-    }
-
-    push @saved_status_array, "$key: $value\n" unless $key_met;
-}
-
-
-sub is_ip {
-    my $host1 = shift;
-    return 0 unless defined $host1;
-    if ($host1 =~ m/^[\d\.]+$/ && $host1 !~ /\.$/) {
-        if ($host1 =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
+sub is_ip_or_hostname {
+    my $str = shift;
+    return 0 unless defined $str;
+    if ($str =~ m/^[\d\.]+$/ && $str !~ /\.$/) {
+        if ($str =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
             return 1;
         } else {
             return 0;
         }
-    } elsif ($host1 =~ m/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)*\.?$/) {
+    } elsif ($str =~
+            m/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+$/) {
         return 1;
     } else {
         return 0;
