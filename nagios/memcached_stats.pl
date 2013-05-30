@@ -139,8 +139,20 @@ for my $line (@memcached_infos) {
     }
 }
 
-my $cache_hits = $cared_memcached_infos{'get_hits'} / $cared_memcached_infos{'cmd_get'};
-$cache_hits = sprintf("%.04s", $cache_hits);
+my $cache_hits;
+
+if (exists $cared_memcached_infos{'get_hits'}
+        && $cared_memcached_infos{'get_hits'}
+        && exists $cared_memcached_infos{'cmd_get'}
+        && $cared_memcached_infos{'cmd_get'}) {
+
+            $cache_hits = $cared_memcached_infos{'get_hits'} / $cared_memcached_infos{'cmd_get'};
+            $cache_hits = sprintf("%.04s", $cache_hits);
+}
+else {
+    $cache_hits = "1";
+}
+
 
 my $status_msg = $cared_memcached_infos{'curr_connections'}
                     . "),cache_hits($cache_hits)"
