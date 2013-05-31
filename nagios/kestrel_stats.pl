@@ -67,14 +67,14 @@ if (defined $g_server && $g_server) {
     if ($g_server =~ m/:/xms) {
         my @tmp = split (/:/, $g_server);
         if ($#tmp) {
-            $g_host = $tmp[0] if is_ip($tmp[0]);
+            $g_host = $tmp[0] if is_ip_or_hostname($tmp[0]);
             $g_port = $tmp[1] if (defined $tmp[1] && $tmp[1] =~ m/^\d+$/xms);
             $g_threshold = $tmp[2] if (defined $tmp[2] && $tmp[2] =~ m/^\d+$/xms);
         }
     }
 }
 
-usage() unless (defined $g_host && is_ip($g_host)
+usage() unless (defined $g_host && is_ip_or_hostname($g_host)
                 && defined $g_port && $g_port =~ m/^\d+$/xms
                 && defined $g_threshold && $g_threshold =~ m/^\d+$/xms);
 
@@ -203,16 +203,18 @@ sub save_to_status_file {
 }
 
 
-sub is_ip {
-    my $host1 = shift;
-    return 0 unless defined $host1;
-    if ($host1 =~ m/^[\d\.]+$/ && $host1 !~ /\.$/) {
-        if ($host1 =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
+
+sub is_ip_or_hostname {
+    my $str = shift;
+    return 0 unless defined $str;
+    if ($str =~ m/^[\d\.]+$/ && $str !~ /\.$/) {
+        if ($str =~ m/^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/) {
             return 1;
         } else {
             return 0;
         }
-    } elsif ($host1 =~ m/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)*\.?$/) {
+    } elsif ($str =~
+            m/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+$/) {
         return 1;
     } else {
         return 0;

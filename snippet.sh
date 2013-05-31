@@ -54,3 +54,7 @@ sqlite3 ~/.mozilla/firefox/btdo7us0.default/places.sqlite "delete from moz_place
 
 
 cat ip.txt | xargs -n 1 -P 0 -I {} wget -q -e http_proxy={} -O {} "http://url/to/file"
+
+
+ttserver -host localhost  -port  11201  -thnum 8 -dmn -pid /opt/ttserver/ttserver.pid -log /opt/ttserver/ttserver.log -le -ulog /opt/ttserver/ -ulim 128m -sid 1 -rts /opt/ttserver/ttserver.rts /opt/ttserver/database.tch
+
