@@ -1,0 +1,22 @@
+/opt/nginx/logs/*.log {
+    daily
+    dateext
+    compress
+    rotate 7
+    #maxage 7
+    sharedscripts
+    postrotate
+        kill -USR1 `cat /opt/nginx/logs/nginx.pid`
+    endscript
+}
+
+# logrotate -f /etc/logrotate.d/nginx.logrotate
+# logrotate -d /etc/logrotate.d/nginx.logrotate
+
+
+# Logrotate提供了一个名为copytruncate的指令，此方法采用的是先拷贝再清空的方式，整个过程中日志文件的操作句
+柄没有发生改变，所以不需要通知应用程序重新打开日志文件，但是需要注意的是，在拷贝和清空之间有一个时间差，所
+以可能会丢失部分日志数据。
+
+# sharedscripts的作用是在所有的日志文件都轮转完毕后统一执行一次脚本。如果没有配置这条指令，那么每个日志文件轮
+转完毕后都会执行一次脚本。
