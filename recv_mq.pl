@@ -12,7 +12,6 @@ use utf8;
 
 use Modern::Perl;
 use Smart::Comments;
-use local::lib "/home/hume/perl5/";
 
 use Carp qw(croak carp confess);
 
