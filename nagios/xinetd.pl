@@ -436,7 +436,7 @@ sub check_regist_ip {
         $ip = $ip_forwarded if is_ip_or_hostname($ip_forwarded);
     }
 
-    if (defined $count && $count > 9) {
+    if (defined $count && $count > 19) {
         if (is_ip_or_hostname($ip)) {
             if (exists $ignore_ips{$ip}) {
                 print "ok, \n";
@@ -447,7 +447,7 @@ sub check_regist_ip {
                 exit $ERRORS{'OK'};
             }
             else {
-                if ($count < 20) {
+                if ($count < 50) {
                     print "warning, $ip Regist too much($count)\n";
                     exit $ERRORS{'WARNING'};
                 }
@@ -512,7 +512,8 @@ sub check_topip {
         }
         # comment two lines below after a few days. try to collect normal topips.
         if (exists $topip_ref->{$ip}) {
-            $topip_ref->{$ip} = max $count, $topip_ref->{$ip};
+            #$topip_ref->{$ip} = max $count, $topip_ref->{$ip};
+            $topip_ref->{$ip} = $count gt $topip_ref->{$ip} ? $count : $topip_ref->{$ip};
         }
         else {
             $topip_ref->{$ip} = $count;

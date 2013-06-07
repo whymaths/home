@@ -134,7 +134,7 @@ case "$1" in
       tries=$((tries + 1))
       if [ $tries -ge 15 ]; then
         echo "FAILED SOFT SHUTDOWN, TRYING HARDER"
-        if [ -f $daemon_pidfile && running ]; then
+        if [ -f $daemon_pidfile && ]; then
           kill $(cat $daemon_pidfile)
         else
           echo "CAN'T FIND PID, TRY KILL MANUALLY"

@@ -10,7 +10,7 @@ my @ips = ();
 while (<>) {
     next unless /^\s*$/;
     next unless /^\s*#/;
-    s/\s*#.*$//xms;
+    s#^(\s*)#$1#;
     chomp;
     push @ips, $_;
 }
