@@ -16,7 +16,7 @@ use local::lib "/home/hume/perl5/";
 
 use Carp qw(croak carp confess);
 
-my $host = get_ip_address("eth1");
+my $host = get_ip_address("eth0");
 ### $host
 my $function = shift @ARGV;
 ### $function
