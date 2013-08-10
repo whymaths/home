@@ -1,0 +1,140 @@
+MogileFS 介绍：
+MogileFS 是一个开源的分布式文件系统,用于组建分布式文件集群,由 LiveJournal 旗下 Danga Interactive 公司开发,Danga 团队开发了包括 Memcached、MogileFS、Perlbal 等不错的开源项目：(注：Perlbal 是一个强大的 Perl 写的反向代理服务器).
+
+目前使用 MogileFS 的公司非常多,比如国外的一些公司,日本前几名的公司基本都在使用这个.
+国内所知道的使用 MogileFS 的公司有图片托管网站 yupoo又拍,digg, 土豆, 豆瓣,1 号店, 大众点评,搜狗,安居客等等网站.
+
+MogileFS 是 51.com 的存储设计的大师碧轩非常推荐的,51 的集群文件系统也是基于这个原理实现的.简单来讲 MogileFS 是基于 Google File System 实作出来的.
+以上介绍出自于：@扶凯(http://www.php-oa.com/2010/09/26/perl-mogilefs-1.html)
+MogileFS安装：
+操作系统：centos 6.2
+数据库：Mysql5.1
+Perl:5.10
+Cpan:1.9402
+测试服务器1 IP：10.211.55.7 （Tracker）
+测试服务器 2 IP：10.211.55.99（）
+
+必要的软件：
+yum install -y gcc gcc-c++ make autoconf libtool-ltdl-devel gd-devel freetype-devel libxml2-devel libjpeg-devel libpng-devel openssl-devel curl-devel patch libmcrypt-devel libmhash-devel ncurses-devel sudo bzip2
+
+软件下载地址：
+
+http://search.cpan.org/dist/mogilefs-Server/
+
+http://search.cpan.org/dist/MogileFS-Utils/
+
+http://search.cpan.org/dist/MogileFS-Client/
+
+——————正式下载—————————-
+#mkdir mogilefs
+#cd mogilefs
+#wget http://search.cpan.org/CPAN/authors/id/D/DO/DORMANDO/MogileFS-Server-2.59.tar.gz
+#wget http://search.cpan.org/CPAN/authors/id/D/DO/DORMANDO/MogileFS-Utils-2.22.tar.gz
+#wget http://search.cpan.org/CPAN/authors/id/D/DO/DORMANDO/MogileFS-Client-1.15.tar.gz
+——————–解压缩———————————————–
+#tar xvf MogileFS-Server-2.59.tar.gz -C /usr/src
+#tar xvf MogileFS- Utils-2.22.tar.gz -C /usr/src
+#tar xvf MogileFS- Client-1.15.tar.gz -C /usr/src
+——————–安装 ———————————————–
+#cd MogileFS-Client-1.15
+#perl Makefile.PL(执行的时候可能会提示你需要安装缺少的组件。)
+#make && make install
+#cd /usr/src/MogileFS-Server-2.59
+#perl Makefile.PL (执行的时候可能会提示你需要安装缺少的组件。)
+#make && make test && make install
+#cd /usr/src/MogileFS-Utils-2.22
+#make && make install
+
+以上的安装看似很简单，其实中间会遇到很多波折。（缺少的组建可以通过CPAN来进行安装）
+MogileFS 数据库配置
+#mysql –uroot
+>create database mogilefs;
+> GRANT ALL PRIVILEGES ON mogilefs.* TO ‘mogile’@’10.211.55.7′ IDENTIFIED BY
+’123456′ WITH GRANT OPTION;
+> FLUSH PRIVILEGES;
+>exit;
+执行完以上内容后 就可以进行初始化数据库了。
+初始化：
+#cd /usr/src/MogileFS-Server-2.59
+# ./mogdbsetup -dbhost=10.211.55.7 -dbname= mogilefs -dbuser= mogile -dbpassword=123456
+初始化完数据库就可以进行MogileFS配置了。
+
+MogileFS trackers 配置：
+#mkdir /etc/mogilefs
+#touch /etc/mogilefs/mogilefsd.conf
+#vim /etc/mogilefs/mogilefsd.conf
+
+db_dsn = DBI:mysql:mogilefs:10.211.55.7:port=3306:mysql_connect_timeout=5
+db_user = mogile
+db_pass = 123456
+conf_port = 7001
+listener_jobs = 5
+node_timeout = 5
+rebalance_ignore_missing = 1
+
+Tracker需要用普通用户启动。
+#useradd mogile
+#su mogile
+$mogilefsd –c /etc/mogilefs/mogilefsd.conf –daemon
+$exit
+
+MogileFS Storage配置：
+#mkdir /var/mogdata
+#touch /etc/mogilefs/mogstored.conf
+#vim /etc/mogilefs/mogstored.conf
+
+httplisten=0.0.0.0:7500
+mgmtlisten=0.0.0.0:7501
+docroot=/var/mogdata
+
+# mogstored -c /etc/mogilefs/mogstored.conf –daemon (启动 MogileFS的存储节点)
+如果Tracker 日志出现TimeOut可以先查看本机的防火墙是否关闭或者直接执行：
+#service iptables stop
+以上就完成了 MogileFS安装与配置。
+MogileFS Host ：(Host添加)
+# mogadm -lib=/usr/lib/perl5/5.10.0/ -trackers=10.211.55.7:7001 host add mogilestorage -ip=10.211.55.7 -port=7500 -status=alive
+# mogadm -lib=/usr/lib/perl5/5.10.0/ -trackers=10.211.55.7:7001 host list
+mogilestorage [1]: alive
+IP: 10.211.55.7:7500
+如果出现以上内容那说明已经添加Host成功了
+
+Mogile Device : (Device添加)
+#mogadm -lib=/usr/lib/perl5/5.10.0/ -trackers=10.211.55.7:7001 device add mogilestorage 1
+上面的1是指定设备ID（次ID不能重复。必须是唯一的）
+# mogadm -lib=/usr/lib/perl5/5.10.0/ -trackers=10.211.55.7:7001 device list
+mogilestorage [1]: alive
+used(G) free(G) total(G)
+dev1: alive 0.988 53.756 54.744
+如果出现以上内容说明创建Device成功
+注意：注意检查 存储节点上是否创建对应的设备目录
+如： 设备序列号为1 对应的目录为 dev1
+Mogile Domain : (Domain添加)
+#mogadm –trackers=10.211.55.7:7001 domain add video
+Mogile Class : (Class添加)
+# mogadm –trackers=10.211.55.7:7001 class add video class1 -mindevcount=2
+说明：参数mindevcount 标识最少复制个数
+Perl 实例：
+
+#!/bin/env perl
+
+use MogileFS::Client;
+use strict;
+use warnings;
+#注意参数domain 要与刚刚创建的Domain 对应。要不会出现 未注册Domain错误。
+#想查询具体错误请打印$client->errcode 的值。
+my $client = MogileFS::Client->new(
+domain =>' video ' ,
+hosts =>[qw(10.211.55.7:7001)],
+);
+
+my (@paths, $filesize);
+
+$filesize = $client->store_file('key2','class1','a.txt');
+
+@paths = $client->get_paths('key2');
+
+my $fdata = $client->get_file_data("key2");
+
+print $$fdata;
+$client->delete("key2");
+
