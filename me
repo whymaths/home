@@ -1,0 +1,20 @@
+写集群：    MogileFS 的监控，rebalance，横向扩展，MySQL优化（SSD），
+
+            分担mysqldb，可转为master库
+            分担tracker，互为主
+
+
+读集群：    nginx-domain（img1-img9）
+
+
+
+    监控系统，微博-开关报警短信
+    
+    晚间批量发送，报警短信合并，重要单点s5，s1-s2合并，s3调到半个小时，s4正常发送，nagios信息入库
+    
+    host: h1-h5
+    service: s1-s5
+    
+    g1-g5：刷home页、timeline、profile、私信、图片，重要接口可用率80%以上晚上就不烦人，刷静态资源页
+    
+    流量导向、流量控制
