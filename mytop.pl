@@ -280,8 +280,9 @@ sub cmd_quit {
     exit;
 }
 
-my  %prev_mysql_status;
+
 sub mysql_show_full_processlist {
+    my  %prev_mysql_status;
     print color("bold green");
     print "MySQL Processlist Info :".( $mysql_host eq '' ? " "x50:" "x35);
     print color("reset");
