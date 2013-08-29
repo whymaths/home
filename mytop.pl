@@ -693,12 +693,13 @@ sub processlist_all {
 
 sub find_bin_in_path {
     my $bin = shift;
-
     next unless $bin;
-
+ 
     use File::Spec::Functions qw(catfile);
-
-    for my $inc_dir (@INC) {
+    
+    my @paths = split(/:/, $ENV{PATH});
+    
+    for my $inc_dir (@paths) {
         my $bin_in_path = catfile($inc_dir, $bin);
         return $bin_in_path if -e $bin_in_path && -x $bin_in_path;
     }
