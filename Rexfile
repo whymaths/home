@@ -127,13 +127,13 @@ task "tail_frontend_nginx_access_log", group => "frontend_nginx", sub {
 
 task "regist_nginx", group => "frontend_nginx", sub {
     my $server = connection->server;
-    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v \" 403 \" | awk '{print \$1,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 2";
+    print "{$server\t=>\n", split /\n/, run "tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v \" 403 \" | awk '{print \$1,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 2";
     print "\n};\n";
 };
 
 task "regist_nginx_1", group => "frontend_nginx", sub {
     my $server = connection->server;
-    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v \" 403 \" | awk '{print \$1}' | sort | uniq -c | sort -n | tail -n 4";
+    print "{$server\t=>\n", split /\n/, run "tail -n 200000 /opt/nginx/logs/access.log | grep Regist | grep -v downloadRegistrationInfo |  grep -v \" 403 \" | awk '{print \$1}' | sort | uniq -c | sort -n | tail -n 4";
     print "\n};\n";
 };
 
@@ -141,21 +141,21 @@ task "regist_nginx_1", group => "frontend_nginx", sub {
 task "nginx_topip", group => "frontend_nginx", sub {
     my $server = connection->server;
 
-    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 4";
+    print "{$server\t=>\n", split /\n/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF,\$(NF-1)}' | sort | uniq -c | sort -n | tail -n 4";
     print "\n};\n";
 };
 
 task "nginx_topip_1", group => "frontend_nginx", sub {
     my $server = connection->server;
 
-    print "{$server\t=>\n", split /\r/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF}' | sort | uniq -c | sort -n | tail -n 4";
+    print "{$server\t=>\n", split /\n/, run "tail -n 200000 /opt/nginx/logs/access.log |  grep -v \" 403 \" | awk '{print \$1,\$NF}' | sort | uniq -c | sort -n | tail -n 4";
     print "\n};\n";
 };
 
 task "clean_nginx_topip", group => "frontend_nginx", sub {
     my $server = connection->server;
 
-    print "$server\t=>\trm -f /opt/work/topip.db\n", split /\r/, run "rm -f /opt/work/topip.db";
+    print "$server\t=>\trm -f /opt/work/topip.db\n", split /\n/, run "rm -f /opt/work/topip.db";
 };
 
 
@@ -163,16 +163,16 @@ task "nginx_topurl", group => "frontend_nginx", sub {
     my $server = connection->server;
 
 
-    #print "{$server\t=>\n", split /\r/, run "tail -n 2000 /opt/nginx/logs/access.log | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
-    #print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    #print "{$server\t=>\n", split /\n/, run "tail -n 2000 /opt/nginx/logs/access.log | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    #print "{$server\t=>\n", split /\n/, run "tail -n 2000000 /opt/nginx/logs/access.log | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
 
 
 
-    #print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:14:[45]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
-    print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:16:[01]' | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    #print "{$server\t=>\n", split /\n/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:14:[45]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    print "{$server\t=>\n", split /\n/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:16:[01]' | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
 
-    #print "{$server\t=>\n", split /\r/, run "head -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:02:[12]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
-    #print "{$server\t=>\n", split /\r/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:[0-9]{2}:[12]' | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    #print "{$server\t=>\n", split /\n/, run "head -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:02:[12]' | awk -F'  ' '{print \$1,\$5}' | awk -F' ' '{print \$1,\$3}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
+    #print "{$server\t=>\n", split /\n/, run "tail -n 2000000 /opt/nginx/logs/access.log | grep -E '2013:[0-9]{2}:[12]' | awk -F'  ' '{print \$1,\$(NF-1),\$5}' | awk -F' ' '{print \$1,\$2,\$(NF-1)}' | awk -F'?' '{print \$1}' | sort | uniq -c | sort -n | tail -n 5";
 
     print "\n};\n";
 };
@@ -190,7 +190,7 @@ task "install_git", group => "bx", sub {
     my $server = connection->server;
     upload "git-1.7.9.6-1.el5.rf.x86_64.rpm", "/opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";
     upload "perl-Git-1.7.9.6-1.el5.rf.x86_64.rpm", "/opt/work/perl-Git-1.7.9.6-1.el5.rf.x86_64.rpm";
-    print "$server\t=>\n", split /\r/, run "rpm -ivh /opt/work/perl-Git-1.7.9.6-1.el5.rf.x86_64.rpm /opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";
+    print "$server\t=>\n", split /\n/, run "rpm -ivh /opt/work/perl-Git-1.7.9.6-1.el5.rf.x86_64.rpm /opt/work/git-1.7.9.6-1.el5.rf.x86_64.rpm";
     print "\n};\n";
 };
 
@@ -198,13 +198,13 @@ task "install_git", group => "bx", sub {
 
 task "git_clone", group => "bx", sub {
     my $server = connection->server;
-    print "$server\t=>\n", split /\r/, run "rm -rf /opt/work/boost.git; git clone http://test:test\@10.10.85.29:5000/boost.git /opt/work/boost.git";
+    print "$server\t=>\n", split /\n/, run "rm -rf /opt/work/boost.git; git clone http://test:test\@10.10.85.29:5000/boost.git /opt/work/boost.git";
     print "\n};\n";
 };
 
 
 task "list_mq", group => "mq", sub {
     my $server = connection->server;
-    print "$server\t=>\n", split /\r/, run "ls -l /opt/kestrel/queues/";
+    print "$server\t=>\n", split /\n/, run "ls -l /opt/kestrel/queues/";
     print "\n";
 }
